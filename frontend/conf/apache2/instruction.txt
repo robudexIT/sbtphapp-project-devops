@@ -1,0 +1,12 @@
+cd /etc/apache2/sites-available
+mv 000-default.conf 000-default.conf-backup
+touch 000-default.conf
+
+COPY "conf/apache2/000-default.conf" content and paste it to /etc/apache2/sites-available/000-default.conf
+
+##Enable the RewriteEngine module in Apache2
+  sudo a2enmod rewrite
+
+##RESTART APACHE2 SERVICE
+  sudo systemctl restart apache2
+
