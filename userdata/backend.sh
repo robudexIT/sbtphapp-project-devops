@@ -10,10 +10,10 @@ cd sbtphapp-project-devops
 
 
 #get the private ip address of the Instance Name=Database
-DB_HOST_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=Database" --query 'Reservations[0].Instances[0].PrivateIpAddress' | sed 's/"//g') 
+DB_HOST_IP=$(aws --region us-east-1 ec2 describe-instances --filters "Name=tag:Name,Values=Database" --query 'Reservations[0].Instances[0].PrivateIpAddress' | sed 's/"//g') 
 
 
-cp -r backend/sbph_api/ /var/www/html/
+cp -r backend/sbtph_api/ /var/www/html/
 
 
 sudo sed -i "s/[0-9]\+\(\.[0-9]\+\)\{3\}/$DB_HOST_IP/" /var/www/html/sbtph_api/config/database.php
@@ -21,12 +21,12 @@ sudo sed -i "s/[0-9]\+\(\.[0-9]\+\)\{3\}/$DB_HOST_IP/" /var/www/html/sbtph_api/c
 #change ownership to ubuntu user and apache2 group
 chown -R ubuntu:ubuntu /var/www/html
 
-cp backend/start-service/update_db_ip.sh /home/ubuntu/
+cp backend/startup-service/update_db_ip.sh /home/ubuntu/
 
 chown -R ubuntu:ubuntu home/ubuntu/update_db_ip.sh
 chmod +x /home/ubuntu/update_db_ip.sh
 
-cp backend/start-service/update_db_ip.service /etc/systemd/system/
+cp backend/startup-service/update_db_ip.service /etc/systemd/system/
 
 sudo systemctl daemon-reload
 sudo systemctl enable update_db_ip.service.service
