@@ -5,7 +5,7 @@ class Database{
     //database properties
 
     private $host = "103.5.6.2";
-    private $dbname = "sbtphcsd";
+    private $dbname = "sbtphapp_db";
     // private $dbname = "restore_data";
     private $username = "python";
     private $password = "sbtph@2018";
