@@ -2,6 +2,7 @@
 sudo apt update -y
 
 sudo apt install apache2  php php-mysql mysql-client git -y
+sudo apt install awscli -y
 sudo systemctl enable apache2
 systemctl start apache2
 
