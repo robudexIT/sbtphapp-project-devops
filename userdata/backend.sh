@@ -23,14 +23,14 @@ chown -R ubuntu:ubuntu /var/www/html
 
 cp backend/startup-service/update_db_ip.sh /home/ubuntu/
 
-chown -R ubuntu:ubuntu home/ubuntu/update_db_ip.sh
+chown -R ubuntu:ubuntu /home/ubuntu/update_db_ip.sh
 chmod +x /home/ubuntu/update_db_ip.sh
 
 cp backend/startup-service/update_db_ip.service /etc/systemd/system/
 
 sudo systemctl daemon-reload
-sudo systemctl enable update_db_ip.service.service
-sudo systemctl start update_db_ip.service.service
+sudo systemctl enable update_db_ip.service
+sudo systemctl start update_db_ip.service
 
 cp backend/cron/update_db_ip.crontab /tmp/
 
