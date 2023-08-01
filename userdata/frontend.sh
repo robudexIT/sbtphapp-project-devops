@@ -28,6 +28,7 @@ sudo chown -R ubuntu:ubuntu /var/www/html
 #this code will deal on SPA application 
 mv etc/apache2/sites-available/000-default.conf etc/apache2/sites-available/000-default.conf-backup
 cp frontend/conf/000-default.conf etc/apache2/sites-available/
+sudo a2enmod rewrite
 sudo systemctl restart apache2
 
 
