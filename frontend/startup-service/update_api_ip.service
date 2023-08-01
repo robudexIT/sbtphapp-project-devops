@@ -1,0 +1,10 @@
+[Unit]
+Description= Update Database IP Script
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/ubuntu/update_api_ip.sh
+
+[Install]
+WantedBy=multi-user.target

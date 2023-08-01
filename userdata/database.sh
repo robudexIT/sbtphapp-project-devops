@@ -36,3 +36,6 @@ sudo mysql -u "$MYSQL_USER"  "$DATABASE_NAME" < "$SQL_FILE"
 
 cd .. 
 sudo rm -rf sbtphapp-project-devops
+
+
+

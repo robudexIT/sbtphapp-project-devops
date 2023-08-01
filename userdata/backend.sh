@@ -41,6 +41,9 @@ crontab /tmp/update_db_ip.crontab
 # Remove the temporary file
 rm /tmp/update_db_ip.crontab
 
+cd .. 
+sudo rm -rf sbtphapp-project-devops
+
 
 
  
