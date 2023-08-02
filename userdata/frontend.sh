@@ -8,7 +8,7 @@ systemctl start apache2
 REGION="us-east-1"
 
 #get the public ip address of the Instance Name=Backend
-API_IP=$(aws --region $REGION ec2 describe-instances --filters "Name=tag:Name,Values=Backend" --query 'Reservations[0].Instances[0].PublicIpAddress' | sed 's/"//g') 
+AWS_API_IP=$(aws --region $REGION ec2 describe-instances --filters "Name=tag:Name,Values=Backend" --query 'Reservations[0].Instances[0].PublicIpAddress' | sed 's/"//g') 
 
 git clone -b  lift-and-shift-aws https://github.com/robudexIT/sbtphapp-project-devops.git
 cd sbtphapp-project-devops
@@ -21,20 +21,21 @@ cp frontend/startup-service/update_api_ip.service /etc/systemd/system/
 cp frontend/startup-service/update_api_ip.sh /home/ubuntu/
 cp frontend/cron/update_api_ip.crontab /tmp/
 
-find /var/www/html/sbtph_app/js -type f -exec sed -E -i "s/\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/$API_IP/g" {} +
-
+if [ "$AWS_API_IP" -ne "null" ]; then
+    find /var/www/html/sbtph_app/js/app* -type f -exec sed -E -i "s/\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/$AWS_API_IP/g" {} +
+fi
 sudo chown -R ubuntu:ubuntu /var/www/html
  
 #this code will deal on SPA application 
-mv etc/apache2/sites-available/000-default.conf etc/apache2/sites-available/000-default.conf-backup
-cp frontend/conf/000-default.conf etc/apache2/sites-available/
+mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf-backup
+cp frontend/conf/000-default.conf /etc/apache2/sites-available/
 sudo a2enmod rewrite
 sudo systemctl restart apache2
 
 
 
 sudo chmod +x /home/ubuntu/update_api_ip.sh
-sudo chown ubuntu:ubuntu /home/ubuntu/update_api_ip.js
+sudo chown ubuntu:ubuntu /home/ubuntu/update_api_ip.sh
 
 sudo systemctl daemon-reload
 sudo systemctl enable update_api_ip.service

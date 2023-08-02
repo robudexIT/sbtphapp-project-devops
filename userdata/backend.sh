@@ -16,8 +16,9 @@ DB_HOST_IP=$(aws --region us-east-1 ec2 describe-instances --filters "Name=tag:N
 
 cp -r backend/sbtph_api/ /var/www/html/
 
-
-sudo sed -i "s/[0-9]\+\(\.[0-9]\+\)\{3\}/$DB_HOST_IP/" /var/www/html/sbtph_api/config/database.php
+if [ "$DB_HOST_IP" -ne "null"]; then
+    sudo sed -i "s/[0-9]\+\(\.[0-9]\+\)\{3\}/$DB_HOST_IP/" /var/www/html/sbtph_api/config/database.php
+fi
 
 #change ownership to ubuntu user and apache2 group
 chown -R ubuntu:ubuntu /var/www/html
