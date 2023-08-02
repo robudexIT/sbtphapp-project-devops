@@ -1,0 +1,79 @@
+Create VPC
+
+For us-east-2
+vpcname: backupVPC
+IP BLock: 172.16.0.0/16
+
+Internet Gateway
+IGW name: backup-IGW
+
+
+Subnets:
+Public Subnets:
+   subnet name: frontend-pubsub01
+   ip block: 172.16.1.0/24
+   az: us-east-2a
+   Enable auto-assign public IPv4 address
+   Enable resource name DNS A record on launch
+
+   subnet name: backend-pubsub01
+   ip block: 172.16.2.0/24
+   az: us-east-2b
+   Enable auto-assign public IPv4 address
+   Enable resource name DNS A record on launch
+
+Private Subnets:
+  subnet name: db-privsub01
+  az: us-east-2c
+  ip block: 172.16.50.0/24
+   Enable auto-assign public IPv4 address (temporary only..remove after database installation)
+   Enable resource name DNS A record on launch
+
+
+Route Tables
+    Name:PublicRT
+    assoc: 
+      - frontend-pubsub01
+      - backend-pubsub01
+    routes:
+       0.0.0.0/0 ---> backup-IGW
+
+    Name: PrivateRT
+    assoc:
+      - db-privsub01
+
+        Note: (db-privsub01 instances cannot connect to the Internet without IGW or NAT Gateway
+        You can add NAT Gateway and add routes 0.0.0.0/0 ----> NGW
+        In my case, for database installation, I temporary put the db-privsub01 to PublicRT and remove it afterwards.)
+         )     
+
+
+Security Group
+    name:frontend-SG
+    Desc: Allow http traffic from outside world
+    Inbound Rules:
+        http from 0.0.0.0/0
+        ssh from  adminstration IP
+
+
+    name: backend-SG
+    Desc: Allow http traffic from frontend-SG
+    Inbound Rules:
+        http from frontend-SG
+        ssh from adminstrator IP
+
+    name: database-SG
+    Desc: Allow mysql traffic from backend-SG
+        mysql from backend-SG
+        ssh from adminstrator IP
+
+
+
+
+
+
+
+   
+
+
+

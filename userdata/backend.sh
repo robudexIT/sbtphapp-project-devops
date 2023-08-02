@@ -8,10 +8,10 @@ systemctl start apache2
 
 git clone -b  lift-and-shift-aws https://github.com/robudexIT/sbtphapp-project-devops.git
 cd sbtphapp-project-devops
-
+REGION="us-east-1"
 
 #get the private ip address of the Instance Name=Database
-DB_HOST_IP=$(aws --region us-east-1 ec2 describe-instances --filters "Name=tag:Name,Values=Database" --query 'Reservations[0].Instances[0].PrivateIpAddress' | sed 's/"//g') 
+DB_HOST_IP=$(aws --region $REGION ec2 describe-instances --filters "Name=tag:Server,Values=Database" --query 'Reservations[0].Instances[0].PrivateIpAddress' | sed 's/"//g') 
 
 
 cp -r backend/sbtph_api/ /var/www/html/
@@ -24,6 +24,8 @@ fi
 chown -R ubuntu:ubuntu /var/www/html
 
 cp backend/startup-service/update_db_ip.sh /home/ubuntu/
+ #update region in update_db_ip.sh
+ sudo sed -i "s/AWS_REGION_HERE/$REGION/" /home/ubuntu/update_db_ip.sh
 
 chown -R ubuntu:ubuntu /home/ubuntu/update_db_ip.sh
 chmod +x /home/ubuntu/update_db_ip.sh

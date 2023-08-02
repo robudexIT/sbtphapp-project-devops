@@ -1,6 +1,7 @@
 #!/bin/bash
 
-REGION="us-east-1"
+REGION="AWS_REGION_HERE"
+
 
 #get the public ip address of the Instance Name=Backend
 AWS_API_IP=$(aws --region $REGION ec2 describe-instances --filters "Name=tag:Server,Values=Backend" --query 'Reservations[0].Instances[0].PublicIpAddress' | sed 's/"//g') 
