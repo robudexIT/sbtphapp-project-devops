@@ -1,0 +1,76 @@
+Deploy this instance to primaryVPC and backupVPC
+
+
+Prerequisite:
+ Create Keypair:
+   1: ec2-Keypair
+ Create Role That allow EC2 to describe Instance in your behalf
+    1.ec2-describe-instance-Role
+
+Note: (Tags is very important,I used this filter query instance IP address)
+For Instance Deployments, the order is mandatory
+
+1. Database  
+    Name: Database
+    Tags:
+        Server: Database 
+    AMI: Ubuntu Server 20.04 LTS (HVM), SSD Volume Type
+    Instance Type: t2.micro
+    Keypair: ec2-Keypair
+    VPC: YOUR-VPC
+    subnet: db-subnet (usually it should be private)
+    Security-Group: database-SG
+    User Data: "copy the script from userdata/database.sh and paste to the textbox"
+
+2. Backend 
+    Name: Backend
+    Tags:
+        Server: Backend
+    AMI: Ubuntu Server 20.04 LTS (HVM), SSD Volume Type
+    Instance Type: t2.micro
+    Keypair: ec2-Keypair
+    Instance Role: ec2-describe-instance-Role
+    VPC: YOUR-VPC
+    subnet: backend-subnet (usually it should be public)
+    Security-Group: backend-SG
+    User Data: "copy the script from userdata/backend.sh and paste to the textbox"
+                "Replace the REGION value to the region you are deploying or where the VPC region you created
+                 example if your VPC is in us-east-1, replace it with REGION="us-east-1"
+   
+
+ 3. Frontend 
+    Name: Frontend
+    Tags:
+        Server: Frontend
+    AMI: Ubuntu Server 20.04 LTS (HVM), SSD Volume Type
+    Instance Type: t2.micro
+    Keypair: ec2-Keypair
+    Instance Role: ec2-describe-instance-Role
+    VPC: YOUR-VPC
+    subnet: frontend-subnet (usually it should be public)
+    Security-Group: frontend-SG
+    User Data: "copy the script from userdata/backend.sh and paste to the textbox"
+                "Replace the REGION value to the region you are deploying or where the VPC region you created
+                 example if your VPC is in us-east-1, replace it with REGION="us-east-1" 
+
+
+  4. For Database Master-to-Master Replcation   
+     a. Login Database Instance of PrimaryVPC and BackupVPC 
+        login to mysql service as root 
+     b.enter the "show master status" in mysql console and take not the value
+     c. create replication.sh file and make it executable
+        touch replication.sh
+        chmod +x replication.sh 
+     d.copy the content of Database/replication.sh to the new created file replication.sh
+     e. open the file and replace all variables with the values you gathered 
+
+        server_ip_remote_peer="PRIVATE_IP_OF_REMOTE_MYSQL"
+        replication_user_remote_peer="REPLICATION_USER"
+        your_password="REPLICATION_PASSWORD"
+        file_from_server_remote_peer="FILE_FROM_SERVER_YOU_GET_FROM_SHOW_MASTER_STATUS"
+        position_from_server_remote_peer=POSITION_NUMBER_YOU_GET_FROM_SHOW_MASTER_STATUS
+
+     f. run the script 
+        ./replication.sh
+     g. login to mysql server and  type the command
+        SHOW SLAVE STATUS/G;           
