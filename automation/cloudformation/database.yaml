@@ -1,0 +1,168 @@
+Parameters:
+  InstanceType:
+    AllowedValues:
+      - t2.micro
+      - t2.medium
+    ConstraintDescription: must be valid EC2 InstanceType.
+    Default: t2.micro 
+    Description: EC2 Instance Type 
+    Type: String 
+  
+  KeyName: 
+    ConstraintDescription: must be the name of an existing EC2 Keypair 
+    Description: Name of an existing Keypair to enable SSH access to the Instance
+    Type: AWS::EC2::KeyPair::KeyName
+  
+  SSHLocation: 
+     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2}) 
+     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+     Default: 0.0.0.0/0
+     Description: The IP address or group of IP Address that allowed to access EC2 Instance
+     MaxLength: '18'
+     MinLength: '9'
+     Type: String
+Mappings:
+  AWSInstanceType2Arch:
+    t2.micro:
+       Arch: HVM64
+    t2.medium:
+      Arch: HVM64
+  AWSRegionArch2AMI:
+     us-east-1:
+       HVM64: ami-0261755bbcb8c4a84
+     us-east-2:
+       HVM64: ami-0430580de6244e02e
+
+Resources:
+  Database: 
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+       ResourceSignal:
+         Timeout: PT15M
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets: 
+          sbtphapp_db_install:
+            - install_mariadb
+            - clone_sbtphapp_project_devops
+            - configure_mariadb
+        
+        install_mariadb:
+          packages:
+            apt: 
+              mariadb-server: []
+          # services:
+          #   sysvinit:
+          #     mariadb: 
+          #       enabled: "true" 
+          #       ensureRunning: "true" 
+          commands:
+            01_enable_mariadb:
+              command: sudo systemctl enable mariadb
+            02_start_mariadb:
+              command: sudo systemctl start mariadb
+          
+        clone_sbtphapp_project_devops:
+          commands:
+            01_change_dir_to_tmp:
+              command: cd /tmp
+            02_clone_repo:
+              command: git clone -b  lift-and-shift-aws https://github.com/robudexIT/sbtphapp-project-devops.git
+
+        configure_mariadb:
+          files:
+            /tmp/database.sh:
+              content: |
+                #!/bin/bash 
+                  # Database information
+                DATABASE_NAME="sbtphapp_db"
+                MYSQL_USER="root"
+                SQL_FILE="/tmp/sbtphapp-project-devops/database/sbtphapp_db.sql"
+                
+                cp /tmp/sbtphapp-project-devops/backend/replicaiton.sh  /home/ubuntu/
+                chown -R ubuntu:ubuntu /home/ubuntu/replicaiton.sh
+                chmod +x /home/ubuntu/replicaiton.sh
+
+                # Define the configuration file path based on the operating system
+                CONFIG_FILE="/etc/mysql/mariadb.conf.d/50-server.cnf"  # Modify this if needed for your system
+                 
+                # Set bind-address to 0.0.0.0
+                sudo sed -i 's/^bind-address\s*=.*$/bind-address = 0.0.0.0/' "$CONFIG_FILE"
+
+                #get private ip address of the instance and remove the dot(.) 
+                # and use it as the mariadb server-id
+
+                INSTANCE_PRIVATE_IP=$(curl -s "http://169.254.169.254/latest/meta-data/local-ipv4")
+
+                SERVER_ID=$(echo "$INSTANCE_PRIVATE_IP" | awk -F '.' '{print $1 $2 $3 $4}')
+
+                #add information for master-master replication to "CONFIG_FILE"
+                
+                sudo sed -i "/^\[mysqld\]/a\binlog_do_db = $DATABASE_NAME" "$CONFIG_FILE"
+                sudo sed -i "/^\[mysqld\]/a\log_bin = /var/log/mysql/mariadb-bin.log" "$CONFIG_FILE"
+                sudo sed -i "/^\[mysqld\]/a\server-id = $SERVER_ID" "$CONFIG_FILE"
+
+     
+
+                echo "CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;" >> /tmp/db.setup
+                echo "CREATE USER 'python'@'%' IDENTIFIED BY 'sbtph@2018';" >> /tmp/db.setup
+                echo "GRANT ALL PRIVILEGES ON $DATABASE_NAME.* TO 'python'@'%';" >> /tmp/db.setup
+                echo "CREATE USER 'sbtphapp_replication_user'@'%' IDENTIFIED BY 'sbtph@2018';" >> /tmp/db.setup
+                echo "GRANT REPLICATION SLAVE ON *.* TO 'sbtphapp_replication_user'@'%';" >> /tmp/db.setup
+                echo "FLUSH PRIVILEGES;"  >> /tmp/db.setup
+                sudo sudo mysql -u root < /tmp/db.setup
+                sudo rm /tmp/db.setup
+                # Restore the database from the SQL file
+                sudo mysql -u "$MYSQL_USER"  "$DATABASE_NAME" < "$SQL_FILE"
+       
+                sudo systemctl restart mariadb
+                cd .. 
+                sudo rm -rf /tmp/sbtphapp-project-devops 
+
+              group: root 
+              mode: '777'
+              owner: root 
+
+          commands: 
+            01_run_database_shell_script:
+              command: /tmp/database.sh            
+                
+       
+    Properties: 
+      ImageId: !FindInMap [AWSRegionArch2AMI, !Ref 'AWS::Region', !FindInMap [AWSInstanceType2Arch, !Ref InstanceType, Arch]]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      Tags: 
+        - Key: Server 
+          Value: Database
+        - Key: Name 
+          Value: Database
+      SecurityGroupIds: !Ref DatabaseSg
+      UserData: 
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          apt update  -y 
+          sudo apt-get -y install python3-pip
+          mkdir -p /opt/aws/
+          sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+          sudo ln -s /usr/local/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+          /usr/local/bin/cfn-init -v --stack ${AWS::StackId} --resource Database --configsets sbtphapp_db_install --region ${AWS::Region}
+          /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource Database --region ${AWS::Region}
+  DatabaseSg:  
+    Type: AWS::EC2::SecurityGroup 
+    Properties:
+      GroupDescription: "Enable mariadb access via 3306 from the backend-Sg source. And allow ssh access on my IP address as a source"
+      SecurityGroupIngress: 
+        - CidrIp: !Ref SSHLocation
+          FromPort: 22
+          IpProtocol: tcp  
+          ToPort: 22 
+
+        
+
+
+      
+
+
+
+        

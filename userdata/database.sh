@@ -5,6 +5,8 @@ sudo apt install git -y
 sudo systemctl enable mariadb
 sudo systemctl start mariadb
 
+
+
 git clone -b  lift-and-shift-aws https://github.com/robudexIT/sbtphapp-project-devops.git
 cd sbtphapp-project-devops
 
@@ -51,6 +53,10 @@ sudo mysql -u "$MYSQL_USER"  "$DATABASE_NAME" < "$SQL_FILE"
 sudo systemctl restart mariadb
 cd .. 
 sudo rm -rf sbtphapp-project-devops
+
+
+
+
 
 
 

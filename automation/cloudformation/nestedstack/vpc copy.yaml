@@ -1,0 +1,377 @@
+Parameters:
+  VpcName: 
+    Description: Specifiy vpc name 
+    Type: String 
+  # AZList:
+  #   Type: List<AWS::EC2::AvailabilityZone::Name>
+  #   Description: List of availability zone 
+
+  SSHLocation: 
+     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2}) 
+     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+     Default: 0.0.0.0/0
+     Description: The IP address or group of IP Address that allowed to access EC2 Instance
+     MaxLength: '18'
+     MinLength: '9'
+     Type: String
+
+
+Mappings:
+   AWSVPCCIDRBLOCK:
+     us-east-1: 
+       CidrBlock: 192.168.0.0/16 
+     us-east-2: 
+       CidrBlock: 172.16.0.0/16
+
+   VPCSubnet: 
+     us-east-1:
+       a : 192.168.1.0/24 
+       b : 192.168.2.0/24
+       c : 192.168.50.0/24 
+
+     us-east-2:
+       a : 172.16.1.0/24 
+       b : 172.16.2.0/24
+       c : 172.16.50.0/24     
+      
+  
+Resources:
+  SBTPHAPPVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [ AWSVPCCIDRBLOCK, !Ref 'AWS::Region', CidrBlock ]
+      EnableDnsHostnames: true 
+      EnableDnsSupport: true  
+      Tags:
+        - Key: Application
+          Value: !Ref AWS::StackId
+        - Key: Name 
+          Value: !Ref VpcName 
+
+  SBTPHAPPIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags: 
+        - Key: Name 
+          Value: SBTPHAPPIGW
+
+
+  SBTPHAPPGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment  
+    Properties:
+      InternetGatewayId: !Ref SBTPHAPPIGW
+      VpcId: !Ref SBTPHAPPVPC
+  
+  SBTPHAPPublicRT:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref SBTPHAPPVPC
+      Tags:
+        - Key: Name 
+          Value: SBTPHAPPublicRT
+
+  SBTPHAPPrvlicRT:
+    Type: AWS::EC2::RouteTable 
+    Properties:
+      VpcId: !Ref SBTPHAPPVPC
+      Tags: 
+       - Key: Name  
+         Value: SBTPHAPPrvlicRT
+  
+  RouteToInternet:
+    Type: AWS::EC2::Route 
+    DependsOn: SBTPHAPPIGW 
+    Properties:
+      RouteTableId: !Ref SBTPHAPPublicRT 
+      DestinationCidrBlock: 0.0.0.0/0 
+      GatewayId: !Ref SBTPHAPPIGW 
+
+  FrontendPubSubRTAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref FrontendPubSub
+      RouteTableId: !Ref SBTPHAPPublicRT 
+  
+  BackendPubSubRTAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref BackendPubSub
+      RouteTableId: !Ref SBTPHAPPublicRT
+
+
+  FrontendPubSub: 
+    Type: AWS::EC2::Subnet 
+    Properties:
+      AvailabilityZone: !Select 
+        - 0 
+        - Fn::GetAZs: !Ref 'AWS::Region'
+
+      CidrBlock: !FindInMap [VPCSubnet, !Ref 'AWS::Region', a]
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref SBTPHAPPVPC
+      Tags:
+        - Key: Name 
+          Value: FrontendPubSub
+
+  BackendPubSub: 
+    Type: AWS::EC2::Subnet 
+    Properties:
+      AvailabilityZone: !Select 
+        - 1
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: !FindInMap [VPCSubnet, !Ref 'AWS::Region', b]
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref SBTPHAPPVPC
+      Tags: 
+        - Key: Name 
+          Value: BackendPubSub
+
+  DatabasePrivSub: 
+    Type: AWS::EC2::Subnet 
+    Properties:
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select 
+        - 2
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: !FindInMap [VPCSubnet, !Ref 'AWS::Region', c]
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref SBTPHAPPVPC
+      Tags: 
+        - Key: Name 
+          Value: DatabasePrivSub
+  
+  BackendSGToDatabaseSg:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allowed all Traffic from BackendSg to DatabaseSg
+      SourceSecurityGroupId: !Ref BackendSg
+      GroupId: !Ref DatabaseSg
+      IpProtocol: -1 
+
+  FrontendSgToBackendSg:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allowed All Traffic From FrontendSg to BackendSg
+      SourceSecurityGroupId: !Ref FrontendSg 
+      GroupId: !Ref BackendSg 
+      IpProtocol: -1 
+
+  FrontendSgToItself:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allowed All Traffic From FrontendSg to Itself
+      SourceSecurityGroupId: !Ref FrontendSg 
+      GroupId: !Ref FrontendSg 
+      IpProtocol: -1 
+
+  BackendSgToItself:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allowed All Traffic From  BackendSg to Itself
+      SourceSecurityGroupId: !Ref BackendSg 
+      GroupId: !Ref BackendSg 
+      IpProtocol: -1 
+
+  DatabaseSgToItself:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      Description: Allowed All Traffic From  DatabaseSg to Itself
+      SourceSecurityGroupId: !Ref DatabaseSg 
+      GroupId: !Ref DatabaseSg  
+      IpProtocol: -1 
+
+  DatabaseSg:  
+    Type: AWS::EC2::SecurityGroup 
+    Properties:
+      GroupDescription: "Enable mariadb access via 3306 from the backend-Sg source. And allow ssh access on my IP address as a source"
+      VpcId: !Ref SBTPHAPPVPC
+      SecurityGroupIngress: 
+        - CidrIp: !Ref SSHLocation
+          FromPort: 22
+          IpProtocol: tcp  
+          ToPort: 22 
+      Tags:
+        - Key: Name 
+          Value: DatabaseSg
+
+  
+  BackendSg:  
+    Type: AWS::EC2::SecurityGroup 
+    Properties:
+      GroupDescription: "Enable mariadb access via 3306 from the backend-Sg source. And allow ssh access on my IP address as a source"
+      VpcId: !Ref SBTPHAPPVPC
+      SecurityGroupIngress: 
+        - CidrIp: !Ref SSHLocation
+          FromPort: 22
+          IpProtocol: tcp  
+          ToPort: 22 
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          IpProtocol: tcp  
+          ToPort: 80
+      Tags: 
+        - Key: Name 
+          Value: BackendSg   
+
+  FrontendSg:  
+    Type: AWS::EC2::SecurityGroup 
+    Properties:
+      GroupDescription: "Enable mariadb access via 3306 from the backend-Sg source. And allow ssh access on my IP address as a source"
+      VpcId: !Ref SBTPHAPPVPC
+      SecurityGroupIngress: 
+        - CidrIp: !Ref SSHLocation
+          FromPort: 22
+          IpProtocol: tcp  
+          ToPort: 22 
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          IpProtocol: tcp  
+          ToPort: 80
+      Tags:
+        - Key: Name 
+          Value: FrontendSg
+
+  LambdaIAMRole:
+    Type: 'AWS::IAM::Role'
+    DependsOn: SBTPHAPPVPC
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'ec2:*'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+  LambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaIAMRole.Arn
+      Runtime: python3.9
+      Timeout: 50
+      Code:
+        ZipFile: |
+            from __future__ import print_function
+            import json
+            import boto3
+            import urllib3
+            import cfnresponse
+
+            SUCCESS = "SUCCESS"
+            FAILED = "FAILED"
+
+            http = urllib3.PoolManager()
+
+            print('Loading function')
+            client = boto3.client('ec2')
+
+            def lambda_handler(event, context):
+                print("Received event: " + json.dumps(event, indent=2))
+                responseData={}
+                try:
+                    if event['RequestType'] == 'Delete':
+                        print("Request Type:",event['RequestType'])
+                        print("Delete Request - No Physical resources to delete")
+                    elif event['RequestType'] == 'Create':
+                        print("Request Type:",event['RequestType'])
+                        VPCID=event['ResourceProperties']['VPCID']
+                        DBSUBNETID=event['ResourceProperties']['DBSUBNETID']
+                        PUBLICRTID=event['ResourceProperties']['PUBLICRTID']
+                        AssociationId=enable_dbsubnet_public(VPCID,DBSUBNETID,PUBLICRTID)
+                        responseData={'AssociationId':AssociationId}
+                        print(responseData)
+                        responseStatus = 'SUCCESS'
+                        print("Sending response to custom resource")
+                        cfnresponse.send(event, context, responseStatus, responseData, "CustomResourcePhysicalID")
+                    elif event['RequestType'] == 'Update':
+                        print("Request Type:",event['RequestType'])
+                        VPCID=event['ResourceProperties']['VPCID']
+                        DBSUBNETID=event['ResourceProperties']['DBSUBNETID']
+                        PUBLICRTID=event['ResourceProperties']['PUBLICRTID']
+                        AssociationId=enable_dbsubnet_public(VPCID,DBSUBNETID,PUBLICRTID)
+                        responseData={'AssociationId':AssociationId}
+                        print(responseData)
+                        print("Sending response to custom resource")
+                        responseStatus = 'SUCCESS'
+                        print("responseStatus: " + responseStatus)
+                        cfnresponse.send(event, context, responseStatus, responseData, "CustomResourcePhysicalID")
+                except Exception as e:
+                    print('Failed to process:', e)
+                    responseStatus = 'FAILED'
+                    responseData = {'Failure': 'Something bad happened.'}
+                    cfnresponse.send(event, context, responseStatus, responseData, "CustomResourcePhysicalID")
+
+            def enable_dbsubnet_public(VPCID,DBSUBNETID,PUBLICRTID):
+              client.modify_subnet_attribute(
+                  MapPublicIpOnLaunch={
+                      'Value': True
+                  },
+                  SubnetId=DBSUBNETID,
+
+              )
+                #associte in public route to gain internet access
+              client.associate_route_table(
+                    RouteTableId=PUBLICRTID,
+                    SubnetId=DBSUBNETID,
+                  
+               )
+              response = client.describe_route_tables(
+                Filters = [
+                    {
+                    'Name': 'association.subnet-id',
+                    'Values': [DBSUBNETID]
+                    },
+                    {
+                      'Name': 'vpc-id',
+                      'Values': [VPCID]
+                    }
+                ]
+               )
+
+                # print("Printing the VPC Route Table ID ....")
+                # RouteTableID=response['RouteTables'][0]['RouteTableId']
+                # print(RouteTableID)
+              AssociationId = response['RouteTables'][0]['Associations'][0]['RouteTableAssociationId']
+              return AssociationId 
+
+
+  Lambdatrigger:
+    Type: 'Custom::RouteTableLambda'
+    Properties:
+      ServiceToken: !GetAtt LambdaFunction.Arn
+      VPCID: !Ref SBTPHAPPVPC
+      DBSUBNETID: !Ref  DatabasePrivSub
+      PUBLICRTID: !Ref  SBTPHAPPublicRT
+Outputs:
+  DatabaseSg: 
+    Value: !Ref DatabaseSg
+  BackendSg: 
+    Value: !Ref BackendSg
+  FrontendSg:
+    Value: !Ref FrontendSg
+  BackendPubSub: 
+    Value: !Ref BackendPubSub 
+  FrontendPubSub: 
+    Value: !Ref FrontendPubSub 
+  DatabasePrivSub:
+    Value: !Ref DatabasePrivSub
+
+

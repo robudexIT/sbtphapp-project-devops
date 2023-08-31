@@ -1,0 +1,206 @@
+
+Parameters:
+  InstanceType:
+    AllowedValues:
+      - t2.micro
+      - t2.medium
+    ConstraintDescription: must be valid EC2 InstanceType.
+    Default: t2.micro 
+    Description: EC2 Instance Type 
+    Type: String 
+  
+  KeyName: 
+    ConstraintDescription: must be the name of an existing EC2 Keypair 
+    Description: Name of an existing Keypair to enable SSH access to the Instance
+    Type: AWS::EC2::KeyPair::KeyName
+  
+  SSHLocation: 
+     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2}) 
+     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+     Default: 0.0.0.0/0
+     Description: The IP address or group of IP Address that allowed to access EC2 Instance
+     MaxLength: '18'
+     MinLength: '9'
+     Type: String
+
+  InstanceProfileRole:
+    Description: Role use by the ec2 instance in your behalf
+    Type: String
+
+
+Mappings:
+  AWSInstanceType2Arch:
+    t2.micro:
+       Arch: HVM64
+    t2.medium:
+      Arch: HVM64
+  AWSRegionArch2AMI:
+     us-east-1:
+       HVM64: ami-0261755bbcb8c4a84
+     us-east-2:
+       HVM64: ami-0430580de6244e02e
+
+
+Resources:    
+  Frontend: 
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+       ResourceSignal:
+         Timeout: PT15M
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets: 
+          sbtphapp_frontend_install:
+            - install_apache2_and_other_dependencies
+            - clone_sbtphapp_project_devops
+            - configure_apache2
+        
+        install_apache2_and_other_dependencies:
+          packages:
+            apt: 
+              apache2: []
+              php: []
+              php-mysql: []
+              mysql-client: []
+              git: []
+              awscli: []
+          services:
+            sysvinit:
+               apache2: 
+                 enabled: "true" 
+                 ensureRunning: "true" 
+          # commands:
+          #   01_enable_mariadb:
+          #     command: sudo systemctl enable mariadb
+          #   02_start_mariadb:
+          #     command: sudo systemctl start mariadb
+          
+        clone_sbtphapp_project_devops:
+          commands:
+            01_change_dir_to_tmp:
+              command: cd /tmp
+            02_clone_repo:
+              command: git clone -b  lift-and-shift-aws https://github.com/robudexIT/sbtphapp-project-devops.git
+
+        configure_apache2:
+          files:
+            /home/ubuntu/update_api_ip.sh:
+              content: !Sub |
+                #!/bin/bash
+                REGION="AWS_REGION_HERE"
+                  #get the public ip address of the Instance Name=Backend
+                  AWS_API_IP=$(aws --region $REGION ec2 describe-instances --filters "Name=tag:Server,Values=Backend" --query 'Reservations[0].Instances[0].PublicIpAddress' | sed 's/"//g') 
+
+                  #exit if AWS_API_IP is equal to null
+                  if [ "$AWS_API_IP" == "null" ]; then
+                    exit 0
+                  fi
+
+                  CHECK_API_IP=$(grep -r -E -o $AWS_API_IP  js/app* | wc -l)
+
+                  if [ "$CHECK_API_IP" -ne 0 ]; then
+                    echo "API IP is not change no need to update"
+                    exit 0
+                    
+                  else {
+                    echo "API IP was change update javascript file"
+                    #find and replace  if app
+                    find /var/www/html/sbtph_app/js/app* -type f -exec sed -E -i "s/\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/$AWS_API_IP/g" {} +
+                    #back the ownership to  ubuntu user and group
+                    sudo chown -R ubuntu:ubuntu /var/www/html/sbtph_app/js/app*
+                    }
+                  fi
+              mode: "777"
+              user: "ubuntu"
+              group: "ubuntu"
+              
+            /tmp/frontend.sh:
+              content: !Sub |
+                #!/bin/bash -xe
+                #get the public ip address of the Instance Name=Backend
+                AWS_API_IP=$(aws --region ${AWS::Region} ec2 describe-instances --filters "Name=tag:Server,Values=Backend" --query 'Reservations[0].Instances[0].PublicIpAddress' | sed 's/"//g') 
+                
+              
+                cp -r /tmp/sbtphapp-project-devops/frontend/sbtph_app/ /var/www/html/
+                cp /tmp/sbtphapp-project-devops/frontend/startup-service/update_api_ip.service /etc/systemd/system/
+                cp /tmp/sbtphapp-project-devops/frontend/startup-service/update_api_ip.sh /home/ubuntu/
+                cp /tmp/sbtphapp-project-devops/frontend/cron/update_api_ip.crontab /tmp/
+
+                if [ "$AWS_API_IP" -ne "null" ]; then
+                    find /var/www/html/sbtph_app/js/app* -type f -exec sed -E -i "s/\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/$AWS_API_IP/g" {} +
+                fi
+                sudo chown -R ubuntu:ubuntu /var/www/html
+                
+                #this code will deal on SPA application 
+                mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf-backup
+                cp  /tmp/sbtphapp-project-devops/frontend/conf/apache2/000-default.conf /etc/apache2/sites-available/
+                sudo a2enmod rewrite
+                sudo systemctl restart apache2
+
+
+                sudo sed -i "s/AWS_REGION_HERE/${AWS::Region}/" /home/ubuntu/update_api_ip.sh
+               
+
+                sudo systemctl daemon-reload
+                sudo systemctl enable update_api_ip.service
+                sudo systemctl start update_api_ip.service
+
+                # Install the updated crontab
+                crontab /tmp/update_api_ip.crontab
+
+                # Remove the temporary file
+                rm /tmp/update_db_api.crontab
+
+
+                cd ..
+                sudo rm -rf  /tmp/sbtphapp-project-devops
+
+              group: root 
+              mode: '777'
+              owner: root 
+
+          commands: 
+            01_run_frontend_shell_script:
+              command: /tmp/frontend.sh            
+                
+       
+    Properties: 
+      ImageId: !FindInMap [AWSRegionArch2AMI, !Ref 'AWS::Region', !FindInMap [AWSInstanceType2Arch, !Ref InstanceType, Arch]]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref InstanceProfileRole
+      Tags: 
+        - Key: Server 
+          Value: Frontend
+        - Key: Name 
+          Value: Frontend
+      SecurityGroups: 
+       - Ref: FrontendSg
+      UserData: 
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          apt update  -y 
+          sudo apt-get -y install python3-pip
+          mkdir -p /opt/aws/
+          sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
+          sudo ln -s /usr/local/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
+          /usr/local/bin/cfn-init -v --stack ${AWS::StackId} --resource Frontend --configsets sbtphapp_frontend_install --region ${AWS::Region}
+          /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource Frontend --region ${AWS::Region}
+  FrontendSg:  
+    Type: AWS::EC2::SecurityGroup 
+    Properties:
+      GroupDescription: "Enable mariadb access via 3306 from the backend-Sg source. And allow ssh access on my IP address as a source"
+      SecurityGroupIngress: 
+        - CidrIp: !Ref SSHLocation
+          FromPort: 22
+          IpProtocol: tcp  
+          ToPort: 22 
+
+        
+
+
+      
+
+
+
+        

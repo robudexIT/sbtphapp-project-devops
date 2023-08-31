@@ -1,0 +1,119 @@
+Parameters:
+  VpcName: 
+    Description: Specifiy vpc name 
+    Type: String 
+  # AZList:
+  #   Type: List<AWS::EC2::AvailabilityZone::Name>
+  #   Description: List of availability zone 
+
+  SSHLocation: 
+     AllowedPattern: (\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2}) 
+     ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+     Default: 0.0.0.0/0
+     Description: The IP address or group of IP Address that allowed to access EC2 Instance
+     MaxLength: '18'
+     MinLength: '9'
+     Type: String
+  
+  InstanceType:
+    AllowedValues:
+      - t2.micro
+      - t2.medium
+    ConstraintDescription: must be valid EC2 InstanceType.
+    Default: t2.micro 
+    Description: EC2 Instance Type 
+    Type: String 
+  
+  KeyName: 
+    ConstraintDescription: must be the name of an existing EC2 Keypair 
+    Description: Name of an existing Keypair to enable SSH access to the Instance
+    Type: AWS::EC2::KeyPair::KeyName
+
+
+
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/vpc.yaml
+      TimeoutInMinutes: '60'
+      Parameters:
+        VpcName: !Ref VpcName
+        SSHLocation: !Ref SSHLocation
+
+  InstanceRoleStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VPCStack
+    Properties:
+      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/instancerole.json
+      TimeoutInMinutes: '60'
+
+
+  DatabaseStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: InstanceRoleStack
+    Properties:
+      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/database.yaml
+      TimeoutInMinutes: '60'
+      Parameters:
+        DbSubnetId: !GetAtt VPCStack.Outputs.DatabasePrivSub
+        DgSecurityGroupID: !GetAtt VPCStack.Outputs.DatabaseSg
+        KeyName: !Ref KeyName
+        InstanceType: !Ref InstanceType
+
+  LockdownDBStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DatabaseStack
+    DeletionPolicy: Retain
+    Properties:
+      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/lockdowndb.yaml
+      TimeoutInMinutes: '60'
+      Parameters:
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        DBSUBNETID: !GetAtt VPCStack.Outputs.DatabasePrivSub
+        # AssociationId: !GetAtt VPCStack.Outputs.AssociationId
+
+  BackendStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: DatabaseStack
+    Properties:
+      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/backend.yaml
+      TimeoutInMinutes: '60'
+      Parameters:
+        BackendSubnetId: !GetAtt VPCStack.Outputs.BackendPubSub
+        BackendSecurityGroupID: !GetAtt VPCStack.Outputs.BackendSg
+        KeyName: !Ref KeyName
+        InstanceType: !Ref InstanceType
+        InstanceProfileRole: !GetAtt InstanceRoleStack.Outputs.sbtphappRoleInstanceProfile
+
+  FrontendStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: BackendStack
+    Properties:
+      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/frontend.yaml
+      TimeoutInMinutes: '60'
+      Parameters:
+        FrontendSubnetId: !GetAtt VPCStack.Outputs.FrontendPubSub
+        FrontendSecurityGroupID: !GetAtt VPCStack.Outputs.FrontendSg
+        KeyName: !Ref KeyName
+        InstanceType: !Ref InstanceType
+        InstanceProfileRole: !GetAtt InstanceRoleStack.Outputs.sbtphappRoleInstanceProfile
+Outputs:
+    MainStackName: 
+      Value: !Ref AWS::StackName
+    MainStackID: 
+      Value: !Ref AWS::StackId
+    MainStackRegion: 
+       Value: !Ref AWS::Region
+    VPCStack:
+      Value: !Ref VPCStack
+    # DatabaseStack:
+    #   Value: !Ref DatabaseStack
+    
+
+         
+
+
+
+

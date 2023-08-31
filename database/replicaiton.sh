@@ -19,7 +19,7 @@ CHANGE MASTER TO
     MASTER_USER='$replication_user_remote_peer',
     MASTER_PASSWORD='$your_password',
     MASTER_LOG_FILE='$file_from_server_remote_peer',
-    MASTER_LOG_POS='$position_from_server_remote_peer',
+    MASTER_LOG_POS=$position_from_server_remote_peer;
   
 
 START SLAVE;
