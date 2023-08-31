@@ -25,17 +25,17 @@ Notes:
   3. Use IAM user with administrator access when creating AWS Cloudformation stacks.
 
  Instructions:
- 1. clone the source code project from GitHub repository.
+ 1. Clone the source code project from the GitHub repository.
     git clone -b  lift-and-shift  https://github.com/robudexIT/sbtphapp-project-devops.git 
  2. Create EC2 keypair for ssh access on instance
-    For us-east-1  keyname: ec2-main-keypair
-    For us-east-2  keyname: ec2-annex-keypair
+    For us-east-1  keyname: **ec2-main-keypair**
+    For us-east-2  keyname: **ec2-annex-keypair**
     Save the keypairs on your working directory and modify the permission 
-    chmod 400 ec2-main-keypair
-    chmod 400 ec2-annex-keypair
- 3. create s3 bucket on main branch (us-east-1) make sure its unique in my case my bucket name is robudex-cf-templates
+**    chmod 400 ec2-main-keypair.pem**
+**    chmod 400 ec2-annex-keypair.pem**
+ 3. create s3 bucket on main branch (us-east-1) make sure its unique in my case my bucket name is **robudex-cf-templates**
  4. change directory to sbtphapp-project-devops/automation/nestedstack
-    cd sbtphapp-project-devops/automation/nestedstack
+    cd sbtphapp-project-devops/automation/cloudformation/nestedstack
     open database.yaml look MYSQL* variables and put your choosen mysql and user and pass
         MYSQL_APP_USER=""
         MYSQL_APP_PWD=""
@@ -48,13 +48,13 @@ Notes:
     - vpc.yaml 
     - instancerole.json
     - lockdowndb.yaml
- 6. Open rootstack.yaml and replace the TemplateURL with your own template URL
+ 6. Open **rootstack.yaml ** and replace the TemplateURL with your own template URL
  7. Creating the Cloudformation stack
     Select us-east-1 region and goto cloudformation and click the create stack button
     - Select Upload a template file  and choose the rootstack.yaml file
     - On stack details fill up the stackname and parameters just make sure to choose the correct keypair.
     - Leave all default options and click NEXT
-    - For Capabilities, check the two checkboxes and click Submit
+    - For Capabilities, check the ** two checkboxes** and click Submit
  8. Select us-east-2 and follow the number 7 steps
  9. Wait for the stack to complete.
  10. When the two stacks are ready, on us-east-1 launch another another stack and choose the vpcpeering.yaml file fillup the stackname and parameters
@@ -82,14 +82,14 @@ Notes:
     I  choose the backend instance as the bastion host.
    Select us-east-1 Region -> goto EC2 
    1. ssh to backend instance 
-      - Once login, cd to /home/ubuntu/.ssh and create  ec2-main-keypair.pem
+      - Once login, cd to /home/ubuntu/.ssh and create  **ec2-main-keypair.pem**
       - From your local workstation, open the  ec2-main-keypair.pem (the one that you saved earlier) copy and paste it to the backend instance  ec2-main-keypair.pem file.
       - Change the permission (chmod 400  ec2-main-keypair.pem)
       - Get the database instance private ip and ssh to it 
         ssh -i ec2-main-keypair.pem ubuntu@<datababse-private-ip>
     2. Select us-east-2 Region -> goto EC2
        Open a new terminal tab
-       Repeat step 1 but replace keypair with ec2-annex-keypair.pem and use ec2-annex-keypair.pem instead.
+       Repeat step 1 but replace keypair with ec2-annex-keypair.pem and use **ec2-annex-keypair.pem** instead.
     3. On us-east-2 Database Instance ssh session, issue commands
        - sudo su
        - mysql
