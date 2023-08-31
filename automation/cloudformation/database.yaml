@@ -77,6 +77,10 @@ Resources:
                   # Database information
                 DATABASE_NAME="sbtphapp_db"
                 MYSQL_USER="root"
+                MYSQL_APP_USER=""
+                MYSQL_APP_PWD=""
+                MYSQL_REP_USER=""
+                MYSQL_REP_PWD=""
                 SQL_FILE="/tmp/sbtphapp-project-devops/database/sbtphapp_db.sql"
                 
                 cp /tmp/sbtphapp-project-devops/backend/replicaiton.sh  /home/ubuntu/
@@ -105,10 +109,10 @@ Resources:
      
 
                 echo "CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;" >> /tmp/db.setup
-                echo "CREATE USER 'python'@'%' IDENTIFIED BY 'sbtph@2018';" >> /tmp/db.setup
-                echo "GRANT ALL PRIVILEGES ON $DATABASE_NAME.* TO 'python'@'%';" >> /tmp/db.setup
-                echo "CREATE USER 'sbtphapp_replication_user'@'%' IDENTIFIED BY 'sbtph@2018';" >> /tmp/db.setup
-                echo "GRANT REPLICATION SLAVE ON *.* TO 'sbtphapp_replication_user'@'%';" >> /tmp/db.setup
+                echo "CREATE USER '$MYSQL_APP_USER'@'%' IDENTIFIED BY '$MYSQL_APP_PWD';" >> /tmp/db.setup
+                echo "GRANT ALL PRIVILEGES ON $DATABASE_NAME.* TO 'MYSQL_APP_USER'@'%';" >> /tmp/db.setup
+                echo "CREATE USER '$MYSQL_REP_USER'@'%' IDENTIFIED BY '$MYSQL_REP_PWD';" >> /tmp/db.setup
+                echo "GRANT REPLICATION SLAVE ON *.* TO '$MYSQL_REP_USER'@'%';" >> /tmp/db.setup
                 echo "FLUSH PRIVILEGES;"  >> /tmp/db.setup
                 sudo sudo mysql -u root < /tmp/db.setup
                 sudo rm /tmp/db.setup

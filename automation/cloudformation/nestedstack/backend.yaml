@@ -76,7 +76,7 @@ Resources:
         clone_sbtphapp_project_devops:
           commands:
             01_clone_repo:
-              command: cd /tmp && git clone -b  lift-and-shift-aws https://github.com/robudexIT/sbtphapp-project-devops.git
+              command: cd /tmp && git clone -b  lift-and-shift https://github.com/robudexIT/sbtphapp-project-devops.git
 
         configure_apache2:
           files:
