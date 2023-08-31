@@ -16,6 +16,9 @@ AWS Service Used on this project:
 5. AWS IAM 
 6. AWS CloudWatch Logs
 
+Architecture:
+![Alt text](sbtphapp_aws_lift_and_shift_architecture.png?raw=true "Title")
+
 Notes:
   1. To avoid any human error, I decided to used AWS Cloudformation an AWS Infrastructure as Code Service to Automate the Creation of Infrastucture and all resources. Today's time Automation is very important. I tried to do some automation as much as possible on this project, from creating infrastructure , spinning up  instance, and install the neccessary services to reduce error from manual configuration setup.
   2. This project is tested on us-east-1 as main branch and us-east-2 as the annex branch.
