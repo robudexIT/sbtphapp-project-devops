@@ -34,7 +34,7 @@ Notes:
 **    chmod 400 ec2-main-keypair.pem**
 **    chmod 400 ec2-annex-keypair.pem**
  3. create s3 bucket on main branch (us-east-1) make sure its unique in my case my bucket name is **robudex-cf-templates**
- 4. change directory to sbtphapp-project-devops/automation/nestedstack
+ 4. change directory to sbtphapp-project-devops/cloudformation/automation/nestedstack
     cd sbtphapp-project-devops/automation/cloudformation/nestedstack
     open database.yaml look MYSQL* variables and put your choosen mysql and user and pass
         MYSQL_APP_USER=""
