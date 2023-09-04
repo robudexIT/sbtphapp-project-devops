@@ -27,7 +27,7 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
   2. This project is tested on **us-east-1** as the main branch and **us-east-2** as the annex branch.
   3. Use IAM user with administrator access when creating AWS Cloudformation stacks.
 
- Instructions:
+ **Instructions:**
  1. Clone the source code project from the GitHub repository.
     **git clone -b  lift-and-shift  https://github.com/robudexIT/sbtphapp-project-devops.git** 
  2. Create EC2 keypair for ssh access on instance.
@@ -44,34 +44,35 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
         MYSQL_APP_PWD=""
         MYSQL_REP_USER="" (replication user)
         MYSQL_REP_PWD=""  (replication password)
- 6. Upload these files on s3 your s3 bucket.
+ 6. Upload these files on s3 your s3 bucket. <br \>
     - database.yaml 
     - backend.yaml
     - frontend.yaml
     - vpc.yaml 
     - instancerole.json
     - lockdowndb.yaml
- 7. Open **rootstack.yaml ** and replace each TemplateURL Directive on each with your own template URL accordingly.
+ 7. Open **rootstack.yaml** and replace each TemplateURL Directive on each with your own template URL accordingly.
  8. Creating the Cloudformation stack. <br />
-    Select us-east-1 region and goto **AWS Cloudformation** and click the create stack button
+    Select **us-east-1** region and goto **AWS Cloudformation** and click the **create stack** button <br />
     - Select Upload a template file  and choose the **rootstack.yaml** file
     - On stack details fill up the stackname and parameters just make sure to choose the correct keypair.
+    - For us-east-1 --> ec2-main-keypair.pem
+    - For us-east-2 --> ec2-annex-keypair.pem
     - Leave all default options and click NEXT
-    - For Capabilities, check the ** two checkboxes** and click Submit
- 9. Select us-east-2 and follow the number 7 steps
- 10. Wait for the stack to complete.
- 11. When the two stacks are ready, on us-east-1 launch another another stack and choose the vpcpeering.yaml file fillup the stackname and parameters
+    - For Capabilities, check the **two checkboxes** and click Submit
+ 9. Select **us-east-2** and follow the number 7 steps
+ 10. Wait for the stack to complete.<br />
 
  **us-east-1 stack:**
  ![Alt text](primarystack.png?raw=true "Title")
  
 **us-east-2 stack:**
  ![Alt text](backupstack.png?raw=true "Title")
+ 11. When the two stacks are ready, on **us-east-1** launch  another stack and choose the **vpcpeering.yaml** file fillup the stackname and parameters.
+ 
 
-
-
- for PEERVPCID: <VPCID of us-east-2>
- for VPCID: <VPCID of us-east-1>
+ For PEERVPCID: <VPCID of us-east-2> <br />
+ For VPCID: <VPCID of us-east-1>
  - Leave all default options and click NEXT
  - For Capabilities, check the checkbox and click Submit
  - Wait for the stack to complete
@@ -80,74 +81,89 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
   ![Alt text](vpcpeeringstack.png?raw=true "Title")
 
  
- 11. For MYSQL REPLICATION steps
-    Since the Database is no longer from the outside because it lockdown after  the necessary application was installed, we need to create a bastion host..for simplicity, 
-    I  choose the backend instance as the bastion host.
+ 12. For MYSQL REPLICATION steps
+    Since the Database is no longer from the outside because it lockdown after  the necessary application was installed, we need to create a bastion host..for simplicity,  I  choose the backend instance as the bastion host.
    Select us-east-1 Region -> goto EC2 
-   1. ssh to backend instance 
+   A. ssh to backend instance 
       - Once login, cd to /home/ubuntu/.ssh and create  **ec2-main-keypair.pem**
       - From your local workstation, open the  ec2-main-keypair.pem (the one that you saved earlier) copy and paste it to the backend instance  ec2-main-keypair.pem file.
       - Change the permission (chmod 400  ec2-main-keypair.pem)
       - Get the database instance private ip and ssh to it 
-        ssh -i ec2-main-keypair.pem ubuntu@<datababse-private-ip>
-    2. Select us-east-2 Region -> goto EC2
+        **ssh -i ec2-main-keypair.pem ubuntu@<datababse-private-ip>**
+    B. Select us-east-2 Region -> goto EC2
        Open a new terminal tab
-       Repeat step 1 but replace keypair with ec2-annex-keypair.pem and use **ec2-annex-keypair.pem** instead.
-    3. On us-east-2 Database Instance ssh session, issue commands
+       Repeat step A but replace keypair with ec2-annex-keypair.pem and use **ec2-annex-keypair.pem** instead.
+    3. Once the ssh connection to the two database instances is established, On **us-east-2** Database Instance issue the following commands:<br \>
        - sudo su
        - mysql
        - show master status;
       The output must be similar to this:
-        +--------------------+----------+--------------+------------------+
-        | File               | Position | Binlog_Do_DB | Binlog_Ignore_DB |
-        +--------------------+----------+--------------+------------------+
-        | mariadb-bin.000001 |      330 | sbtphapp_db  |                  |
-        +--------------------+----------+--------------+------------------+
-
+        +--------------------+----------+--------------+------------------+ <br \>
+        | File               | Position | Binlog_Do_DB | Binlog_Ignore_DB | <br \>
+        +--------------------+----------+--------------+------------------+ <br \>
+        | mariadb-bin.000001 |      330 | sbtphapp_db  |                  | <br \>
+        +--------------------+----------+--------------+------------------+ <br \>
+        Take note of this information. <br>
     4.  On us-east-1 Database Instance ssh session,  open /home/ubuntu/replicaiton.sh 
       - Fill in all variables
-        file_from_server_remote_peer=File
-        position_from_server_remote_peer=Position
+        file_from_server_remote_peer=< Filename from us-east-2 database instance> <br \>
+        position_from_server_remote_peer=< Position from us-east-2 database instance> <br \>
+        server_ip_remote_peer=<us-east-2 database instance private ip> <br \>
+        replication_user_remote_peer=<replication user> <br \>
+        your_password=<replicationpassowrd> <br \>
+      
         
-        example:
-        server_ip_remote_peer="172.16.50.31"
-        replication_user_remote_peer="sbtphapp_replication_user"
-        your_password="sbtph@2018"
-        file_from_server_remote_peer="mariadb-bin.000001"
-        position_from_server_remote_peer=330
+        example: <br \>
+        server_ip_remote_peer="172.16.50.31" <br \>
+        replication_user_remote_peer="sbtphapp_replication_user" <br \>
+        your_password="sbtph@2018" <br \>
+        file_from_server_remote_peer="mariadb-bin.000001" <br \>
+        position_from_server_remote_peer=330 <br \>
       - run the script
-        /home/ubuntu/replicaiton.sh
-    5.  Repeat 3 and 4 steps, but this time us-east-1 database instance is the source of bin file and position and to be copied on us-east-2  database instance
+        **/home/ubuntu/replicaiton.sh**
+    5.  Repeat steps 3 and 4, but this time to replicate data from the **us-east-1** database instance to the
+        **us-east-2** database instance,
 
-    6. On both Server login mysql as root then type the command
-       show slave status \G;
-       if it show on both server 
-            Slave_IO_Running: Yes
+    6. On both Servers login mysql as root then type the command.<br \>
+       **show slave status \G;**
+       if it show on both server <br\>
+            Slave_IO_Running:Yes
             Slave_SQL_Running: Yes
        Most probably, the replication setup was successful.
-    7. For testing, select the frontend instance of us-east-1 and us-east-2
+    7. For testing, select the frontend instance of us-east-1 and us-east-2 stacks <br\>
        Get public ip address, open two browser tabs and paste it
        first tab http://<us-east-1-frontend-public-ip>/sbtph_app/login
        second tab http://<us-east-2-frontend-public-ip>/sbtph_app/login
-    8. login on apps
-       extension: 6336
-       secret: 99999
-    9. On first tab, goto MANAGEMENT ->COLLECTIONS AGENTS
-       Click ADD AGENT
-          Name: devops_user01
-          Email_Address: devops_user01@gmail.com
-          Extension: 88888
+    8. Log in on apps.
+      - extension: 6336
+      - secret: 99999
+    9. On first tab, goto MANAGEMENT ->COLLECTIONS AGENTS. <br \>
+       Click ADD AGENT <br \>
+          - Name: devops_user01
+          - Email_Address: devops_user01@gmail.com
+          - Extension: 88888
+          
          ![Alt text](appinfirsttab01.png?raw=true "Title") 
 
        As you can see, the user added in the number 8 
        ![Alt text](appinfirsttab02.png?raw=true "Title")
 
-       on the second tab  goto MANAGEMENT ->COLLECTIONS AGENTS 
+        On the second tab  goto MANAGEMENT ->COLLECTIONS AGENTS 
        If you can see the devops_user01, on the number 8 meaning replication was successful.
        ![Alt text](appinsecondtab.png.png?raw=true "Title")
 
-    10. Try to delete devops_user01 on the second tab and you will see it also deleted in the first tab as well
+    10. Try to delete devops_user01 on the second tab and you will see it also deleted in the first tab as well.
+
+**Notes:** <br\>
+  - After the exercise, please do not forget to delete all the cloudformation stack.
+
+ Steps for Deleting Cloudformation Stacks:
+ 1. Delete the vpcpeering stack.
+ 2. Delete us-east-1 rootstack
+ 3. Delete us-east-2 rootstack
+
     
+**This concludes the Instructions for this exercise. Thank You!** <br />    
 
 
 
