@@ -134,14 +134,14 @@ Notes:
           Name: devops_user01
           Email_Address: devops_user01@gmail.com
           Extension: 88888
-         ![Alt text](app_in_first_tab01.png?raw=true "Title") 
+         ![Alt text](appinfirsttab01.png?raw=true "Title") 
 
        As you can see, the user added in the number 8 
-       ![Alt text](app_in_first_tab02.png?raw=true "Title")
+       ![Alt text](appinfirsttab02.png?raw=true "Title")
 
        on the second tab  goto MANAGEMENT ->COLLECTIONS AGENTS 
        If you can see the devops_user01, on the number 8 meaning replication was successful.
-       ![Alt text](app_in_second_tab.png.png?raw=true "Title")
+       ![Alt text](appinsecondtab.png.png?raw=true "Title")
 
     10. Try to delete devops_user01 on the second tab and you will see it also deleted in the first tab as well
     
