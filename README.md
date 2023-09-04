@@ -2,10 +2,10 @@
 
 In this branch, (lift-and-shift) replicates all company resources on  aws cloud.
 
-Company OnPrem                      AWS CLOUD
-Branches (Main and Annex) ---------- AWS REGION (us-east-1 and us-east-2)
-company network infrastructure ----- AWS VPC
-company Servers ------------------- EC2 Instance
+1. Company OnPrem                      AWS CLOUD
+2. Branches (Main and Annex) ---------- AWS REGION (us-east-1 and us-east-2)
+3. Company network infrastructure ----- AWS VPC
+4. Company Servers ------------------- EC2 Instance
 
 
 AWS Service Used on this project:
