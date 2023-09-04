@@ -52,7 +52,7 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
     - instancerole.json
     - lockdowndb.yaml
  7. Open **rootstack.yaml ** and replace each TemplateURL Directive on each with your own template URL accordingly.
- 8. Creating the Cloudformation stack.
+ 8. Creating the Cloudformation stack.__
     Select us-east-1 region and goto **AWS Cloudformation** and click the create stack button
     - Select Upload a template file  and choose the **rootstack.yaml** file
     - On stack details fill up the stackname and parameters just make sure to choose the correct keypair.
