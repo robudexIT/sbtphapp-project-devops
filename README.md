@@ -95,12 +95,12 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
        - sudo su
        - mysql
        - show master status;
-      The output must be similar to this:
-        +--------------------+----------+--------------+------------------+ <br \>
-        | File               | Position | Binlog_Do_DB | Binlog_Ignore_DB | <br \>
-        +--------------------+----------+--------------+------------------+ <br \>
-        | mariadb-bin.000001 |      330 | sbtphapp_db  |                  | <br \>
-        +--------------------+----------+--------------+------------------+ <br \>
+      The output must be similar to this: <br>
+        +--------------------+----------+--------------+------------------+  <br \>
+        | File               | Position | Binlog_Do_DB | Binlog_Ignore_DB |  <br \>
+        +--------------------+----------+--------------+------------------+  <br \>
+        | mariadb-bin.000001 |      330 | sbtphapp_db  |                  |  <br \>
+        +--------------------+----------+--------------+------------------+  <br \>
         Take note of this information. <br>
  4.  On us-east-1 Database Instance ssh session,  open /home/ubuntu/replicaiton.sh 
       - Fill in all variables
@@ -141,19 +141,19 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
           - Email_Address: devops_user01@gmail.com
           - Extension: 88888
           
-         ![Alt text](appinfirsttab01.png?raw=true "Title") 
+   ![Alt text](appinfirsttab01.png?raw=true "Title") 
 
-       As you can see, the user added in the number 8 
-       ![Alt text](appinfirsttab02.png?raw=true "Title")
+       As you can see, the user added in the number 8 <br \>
+   ![Alt text](appinfirsttab02.png?raw=true "Title")
 
-        On the second tab  goto MANAGEMENT ->COLLECTIONS AGENTS 
-       If you can see the devops_user01, on the number 8 meaning replication was successful.
-       ![Alt text](appinsecondtab.png.png?raw=true "Title")
+  On the second tab  goto MANAGEMENT ->COLLECTIONS AGENTS <br \>
+  If you can see the devops_user01, on the number 8 meaning replication was successful. <br \>
+   ![Alt text](appinsecondtab.png.png?raw=true "Title")
 
  10. Try to delete devops_user01 on the second tab and you will see it also deleted in the first tab as well.
 
 **Notes:** <br\>
-  - After the exercise, please do not forget to delete all the cloudformation stack.
+  - After the exercise, please do not forget to delete all the cloudformation stack. <br \>
 
  Steps for Deleting Cloudformation Stacks:
  1. Delete the vpcpeering stack.
