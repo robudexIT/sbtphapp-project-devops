@@ -80,8 +80,7 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
  **vpc-peering stack :**
   ![Alt text](vpcpeeringstack.png?raw=true "Title")
 
- 
- 12. For MYSQL REPLICATION steps
+12. For MYSQL REPLICATION steps
     Since the Database is no longer from the outside because it lockdown after  the necessary application was installed, we need to create a bastion host..for simplicity,  I  choose the backend instance as the bastion host.
    Select us-east-1 Region -> goto EC2 
    A. ssh to backend instance 
