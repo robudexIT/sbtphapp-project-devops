@@ -31,19 +31,19 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
  1. Clone the source code project from the GitHub repository.
     **git clone -b  lift-and-shift  https://github.com/robudexIT/sbtphapp-project-devops.git** 
  2. Create EC2 keypair for ssh access on instance.
-    For us-east-1  keyname: **ec2-main-keypair**__
-    For us-east-2  keyname: **ec2-annex-keypair**__
-    Save the keypairs on your local machine and modify the permission
-      **chmod 400 ec2-main-keypair.pem**
-      **chmod 400 ec2-annex-keypair.pem**
+    For us-east-1  keyname: **ec2-main-keypair** <br \>
+    For us-east-2  keyname: **ec2-annex-keypair** </br \>
+    Save the keypairs on your local machine and modify the permission <br \>
+      **chmod 400 ec2-main-keypair.pem** <br \>
+      **chmod 400 ec2-annex-keypair.pem** <br \>
  4. Create S3 bucket on main branch (**us-east-1**) make sure it is unique in my case my bucket name is **robudex-cf-templates**
  5. Change directory to sbtphapp-project-devops/cloudformation/automation/nestedstack
     **cd sbtphapp-project-devops/automation/cloudformation/nestedstack**
     open database.yaml look on MYSQL* variables and put your choosen mysql and user and pass
-        MYSQL_APP_USER=""
-        MYSQL_APP_PWD=""
-        MYSQL_REP_USER="" (replication user)
-        MYSQL_REP_PWD=""  (replication password)
+        MYSQL_APP_USER="" <br \>
+        MYSQL_APP_PWD=""  <br \>
+        MYSQL_REP_USER="" (replication user) <br \>
+        MYSQL_REP_PWD=""  (replication password) <br \>
  6. Upload these files on s3 your s3 bucket. <br \>
     - database.yaml 
     - backend.yaml
