@@ -84,8 +84,8 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
  
   ![Alt text](vpcpeeringstack.png?raw=true "Title")
   
-**For MYSQL REPLICATION Steps**
-    Since the Database is no longer from the outside because it lockdown after  the necessary application was installed, we need to create a bastion host..for simplicity,  I  choose the backend instance as the bastion host.
+**For MYSQL REPLICATION Steps** <br />
+    Since the Database is no longer from the outside because it lockdown after  the necessary application was installed, we need  to create a bastion host..for simplicity,  I  choose the backend instance as the bastion host. <br />
    Select us-east-1 Region -> goto EC2 <br />
    1. ssh to backend instance <br />
       - Once login, cd to /home/ubuntu/.ssh and create  **ec2-main-keypair.pem** <br />
