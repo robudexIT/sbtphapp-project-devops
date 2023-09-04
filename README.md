@@ -38,8 +38,8 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
       **chmod 400 ec2-annex-keypair.pem** <br \>
  4. Create S3 bucket on main branch (**us-east-1**) make sure it is unique in my case my bucket name is **robudex-cf-templates**
  5. Change directory to sbtphapp-project-devops/cloudformation/automation/nestedstack
-    **cd sbtphapp-project-devops/automation/cloudformation/nestedstack**
-    open database.yaml look on MYSQL* variables and put your choosen mysql and user and pass
+    **cd sbtphapp-project-devops/automation/cloudformation/nestedstack** <br \>
+    open database.yaml look on MYSQL* variables and put your choosen mysql and user and pass <br \>
         MYSQL_APP_USER="" <br \>
         MYSQL_APP_PWD=""  <br \>
         MYSQL_REP_USER="" (replication user) <br \>
@@ -80,19 +80,18 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
  **vpc-peering stack :**
   ![Alt text](vpcpeeringstack.png?raw=true "Title")
 
-12. For MYSQL REPLICATION steps
+ For MYSQL REPLICATION steps
     Since the Database is no longer from the outside because it lockdown after  the necessary application was installed, we need to create a bastion host..for simplicity,  I  choose the backend instance as the bastion host.
-   Select us-east-1 Region -> goto EC2 
-   A. ssh to backend instance 
+   Select us-east-1 Region -> goto EC2 <br \>
+   1. ssh to backend instance 
       - Once login, cd to /home/ubuntu/.ssh and create  **ec2-main-keypair.pem**
       - From your local workstation, open the  ec2-main-keypair.pem (the one that you saved earlier) copy and paste it to the backend instance  ec2-main-keypair.pem file.
-      - Change the permission (chmod 400  ec2-main-keypair.pem)
-      - Get the database instance private ip and ssh to it 
+      - Change the permission (chmod 400  ec2-main-keypair.pem)      - Get the database instance private ip and ssh to it 
         **ssh -i ec2-main-keypair.pem ubuntu@<datababse-private-ip>**
-    B. Select us-east-2 Region -> goto EC2
+  2 . Select us-east-2 Region -> goto EC2 <br>
        Open a new terminal tab
-       Repeat step A but replace keypair with ec2-annex-keypair.pem and use **ec2-annex-keypair.pem** instead.
-    3. Once the ssh connection to the two database instances is established, On **us-east-2** Database Instance issue the following commands:<br \>
+       Repeat step 1 but replace keypair with ec2-annex-keypair.pem and use **ec2-annex-keypair.pem** instead.
+  3. Once the ssh connection to the two database instances is established, On **us-east-2** Database Instance issue the following commands:<br \>
        - sudo su
        - mysql
        - show master status;
@@ -103,7 +102,7 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
         | mariadb-bin.000001 |      330 | sbtphapp_db  |                  | <br \>
         +--------------------+----------+--------------+------------------+ <br \>
         Take note of this information. <br>
-    4.  On us-east-1 Database Instance ssh session,  open /home/ubuntu/replicaiton.sh 
+ 4.  On us-east-1 Database Instance ssh session,  open /home/ubuntu/replicaiton.sh 
       - Fill in all variables
         file_from_server_remote_peer=< Filename from us-east-2 database instance> <br \>
         position_from_server_remote_peer=< Position from us-east-2 database instance> <br \>
@@ -120,23 +119,23 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
         position_from_server_remote_peer=330 <br \>
       - run the script
         **/home/ubuntu/replicaiton.sh**
-    5.  Repeat steps 3 and 4, but this time to replicate data from the **us-east-1** database instance to the
+ 5.  Repeat steps 3 and 4, but this time to replicate data from the **us-east-1** database instance to the
         **us-east-2** database instance,
 
-    6. On both Servers login mysql as root then type the command.<br \>
+ 6 . On both Servers login mysql as root then type the command.<br \>
        **show slave status \G;**
        if it show on both server <br\>
             Slave_IO_Running:Yes
             Slave_SQL_Running: Yes
        Most probably, the replication setup was successful.
-    7. For testing, select the frontend instance of us-east-1 and us-east-2 stacks <br\>
+7. For testing, select the frontend instance of us-east-1 and us-east-2 stacks <br\>
        Get public ip address, open two browser tabs and paste it
        first tab http://<us-east-1-frontend-public-ip>/sbtph_app/login
        second tab http://<us-east-2-frontend-public-ip>/sbtph_app/login
-    8. Log in on apps.
+8. Log in on apps.
       - extension: 6336
       - secret: 99999
-    9. On first tab, goto MANAGEMENT ->COLLECTIONS AGENTS. <br \>
+9. On first tab, goto MANAGEMENT ->COLLECTIONS AGENTS. <br \>
        Click ADD AGENT <br \>
           - Name: devops_user01
           - Email_Address: devops_user01@gmail.com
@@ -151,7 +150,7 @@ In this branch, (lift-and-shift) replicates all company resources on  AWS Cloud.
        If you can see the devops_user01, on the number 8 meaning replication was successful.
        ![Alt text](appinsecondtab.png.png?raw=true "Title")
 
-    10. Try to delete devops_user01 on the second tab and you will see it also deleted in the first tab as well.
+ 10. Try to delete devops_user01 on the second tab and you will see it also deleted in the first tab as well.
 
 **Notes:** <br\>
   - After the exercise, please do not forget to delete all the cloudformation stack.
