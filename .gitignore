@@ -1,1 +1,4 @@
 *.pem
+automation/terraform/.terraform
+automation/terraform/.terraform*
+automation/terraform/terraform.*
