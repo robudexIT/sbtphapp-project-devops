@@ -1,19 +1,32 @@
 
+module "sbtphapp_iam" {
+    source = "./iam"
+
+}
 module "primary_sbtphapp_vpc" {
     source = "./vpc"
     region = "us-east-1"
     vpc_name = "primary_sbtphapp_vpc"
 }
 
-module "secondary_sbtphapp_vpc" {
-    providers  = {
-        aws = aws.secondary
-    }
-    source = "./vpc"
-    region = "us-east-2"
-    vpc_name = "secondary_sbtphapp_vpc"
+# module "secondary_sbtphapp_vpc" {
+#     providers  = {
+#         aws = aws.secondary
+#     }
+#     source = "./vpc"
+#     region = "us-east-2"
+#     vpc_name = "secondary_sbtphapp_vpc"
+# }
+
+
+
+output "sbtphapp_lambda_role_arn" {
+    value = module.sbtphapp_iam.sbtphapp_lambda_role_arn
 }
 
+output "sbtphapp_instance_profile_name" {
+    value = module.sbtphapp_iam.sbtphapp_instance_profile_name
+}
 
 output "vpc_id" {
    value = module.primary_sbtphapp_vpc.vpc_id
