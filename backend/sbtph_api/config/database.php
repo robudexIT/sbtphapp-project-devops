@@ -7,8 +7,8 @@ class Database{
     private $host = "103.5.6.2";
     private $dbname = "sbtphapp_db";
     // private $dbname = "restore_data";
-    private $username = "python";
-    private $password = "sbtph@2018";
+    private $username = "SBTPHAPP_USER_HERE";
+    private $password = "SBTPHAPP_PWD_HERE";
 
  
     private $db;

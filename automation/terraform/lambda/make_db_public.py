@@ -35,13 +35,24 @@ def lambda_handler(event, context):
         }
 
 def enable_dbsubnet_public(VPCID,DBSUBNETID,PUBLICRTID):
-    client.modify_subnet_attribute(
-        MapPublicIpOnLaunch={
-            'Value': True
-        },
-        SubnetId=DBSUBNETID,
-
+    
+    response = client.describe_subnets(
+        SubnetIds = [
+            DBSUBNETID
+        ]
     )
+    MapPublicIpOnLaunch = response['Subnets'][0]['MapPublicIpOnLaunch']
+    
+    if MapPublicIpOnLaunch == False:
+        
+        client.modify_subnet_attribute(
+            MapPublicIpOnLaunch={
+                'Value': True
+            },
+            SubnetId=DBSUBNETID,
+
+        )
+    
     #associte in public route to gain internet access
     client.associate_route_table(
         RouteTableId=PUBLICRTID,

@@ -1,0 +1,66 @@
+#cloud-config
+
+packages: 
+  - mariadb-server 
+  - git 
+
+
+write_files: 
+  - path: /run/database.sh
+    owner: root:root
+    permissions: "777"
+    content: |
+                #!/bin/bash 
+                  # Database information
+                DATABASE_NAME="sbtphapp_db"
+                MYSQL_USER="root"
+                MYSQL_APP_USER="${mysql_app_user}"
+                MYSQL_APP_PWD="${mysql_app_pwd}"
+                MYSQL_REP_USER="${mysql_rep_user}"
+                MYSQL_REP_PWD="${mysql_rep_pwd}"
+                SQL_FILE="/tmp/sbtphapp-project-devops/database/sbtphapp_db.sql"
+
+                cp /tmp/sbtphapp-project-devops/database/replicaiton.sh  /home/ubuntu/
+                chown -R ubuntu:ubuntu /home/ubuntu/replicaiton.sh
+                chmod +x /home/ubuntu/replicaiton.sh
+
+                # Define the configuration file path based on the operating system
+                CONFIG_FILE="/etc/mysql/mariadb.conf.d/50-server.cnf"  # Modify this if needed for your system
+
+                # Set bind-address to 0.0.0.0
+                sudo sed -i 's/^bind-address\s*=.*$/bind-address = 0.0.0.0/' "$CONFIG_FILE"
+
+                #get private ip address of the instance and remove the dot(.) 
+                # and use it as the mariadb server-id
+
+                INSTANCE_PRIVATE_IP=$(curl -s "http://169.254.169.254/latest/meta-data/local-ipv4")
+
+                SERVER_ID=$(echo "$INSTANCE_PRIVATE_IP" | awk -F '.' '{print $1 $2 $3 $4}')
+
+                #add information for master-master replication to "CONFIG_FILE"
+
+                sudo sed -i "/^\[mysqld\]/a\binlog_do_db = $DATABASE_NAME" "$CONFIG_FILE"
+                sudo sed -i "/^\[mysqld\]/a\log_bin = /var/log/mysql/mariadb-bin.log" "$CONFIG_FILE"
+                sudo sed -i "/^\[mysqld\]/a\server-id = $SERVER_ID" "$CONFIG_FILE"
+
+
+
+                echo "CREATE DATABASE IF NOT EXISTS $DATABASE_NAME;" >> /tmp/db.setup
+                echo "CREATE USER '$MYSQL_APP_USER'@'%' IDENTIFIED BY '$MYSQL_APP_PWD';" >> /tmp/db.setup
+                echo "GRANT ALL PRIVILEGES ON $DATABASE_NAME.* TO '$MYSQL_APP_USER'@'%';" >> /tmp/db.setup
+                echo "CREATE USER '$MYSQL_REP_USER'@'%' IDENTIFIED BY '$MYSQL_REP_PWD';" >> /tmp/db.setup
+                echo "GRANT REPLICATION SLAVE ON *.* TO '$MYSQL_REP_USER'@'%';" >> /tmp/db.setup
+                echo "FLUSH PRIVILEGES;"  >> /tmp/db.setup
+                sudo sudo mysql -u root < /tmp/db.setup
+                sudo rm /tmp/db.setup
+                # Restore the database from the SQL file
+                sudo mysql -u "$MYSQL_USER"  "$DATABASE_NAME" < "$SQL_FILE"
+
+                sudo systemctl restart mariadb
+                cd .. 
+                sudo rm -rf /tmp/sbtphapp-project-devops 
+runcmd:
+  -  sudo systemctl enable mariadb
+  -  sudo systemctl start mariadb
+  - cd /tmp && git clone -b  lift-and-shift https://github.com/robudexIT/sbtphapp-project-devops.git
+  - /run/database.sh
