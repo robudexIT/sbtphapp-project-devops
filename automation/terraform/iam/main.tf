@@ -25,6 +25,11 @@ resource "aws_iam_role" "sbtphapp_lambda_role" {
                     Action = ["ec2:*"]
                     Effect = "Allow"
                     Resource = "*"
+                },
+                {
+                    Action = ["logs:CreateLogGroup","logs:CreateLogStream","logs:PutLogEvents"]
+                    Effect = "Allow"
+                    Resource = "arn:aws:logs:*:*:*"
                 }
             ]
         })

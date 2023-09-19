@@ -9,6 +9,14 @@ module "primary_sbtphapp_vpc" {
     vpc_name = "primary_sbtphapp_vpc"
 }
 
+module "primary_make_db_public_lambda" {
+    source = "./lambda"
+    sbtphapp_lambda_role_arn = module.sbtphapp_iam.sbtphapp_lambda_role_arn
+    vpc_id = module.primary_sbtphapp_vpc.vpc_id
+    database_subnet_id = module.primary_sbtphapp_vpc.database_subnet_id
+    sbtphapp_public_rt_id =  module.primary_sbtphapp_vpc.sbtphapp_public_rt_id
+}
+
 # module "secondary_sbtphapp_vpc" {
 #     providers  = {
 #         aws = aws.secondary
@@ -59,4 +67,8 @@ output "backend_sg_id" {
 
 output "sbtphapp_public_rt_id" {
     value = module.primary_sbtphapp_vpc.sbtphapp_public_rt_id
+}
+
+output "made_db_public_invoke_result" {
+    value =  module.primary_make_db_public_lambda.made_db_public_invoke_result
 }

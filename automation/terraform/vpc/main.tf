@@ -38,6 +38,9 @@ resource "aws_subnet" "frontend_subnet" {
   availability_zone =  data.aws_availability_zones.available.names[0]
   cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[0]]
   map_public_ip_on_launch = true
+  tags = {
+    Name = "frontend_subnet"
+  }
 }
 
 resource "aws_subnet" "backend_subnet" {
@@ -46,6 +49,10 @@ resource "aws_subnet" "backend_subnet" {
   cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[1]]
   map_public_ip_on_launch = true
 
+  tags = {
+    Name = "backend_subnet"
+  }
+
 }
 
 resource "aws_subnet" "database_subnet" {
@@ -53,6 +60,11 @@ resource "aws_subnet" "database_subnet" {
   availability_zone =  data.aws_availability_zones.available.names[2]
   cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[2]]
   map_public_ip_on_launch = false
+
+    tags = {
+    Name = "database_subnet"
+  }
+
 
 }
 
@@ -104,6 +116,11 @@ resource "aws_security_group" "frontend_sg" {
         ipv6_cidr_blocks = ["::/0"]
     }
 
+      tags = {
+       Name = "frontend_sg"
+     }
+
+
 }
 
 resource "aws_security_group" "backend_sg" {
@@ -152,6 +169,11 @@ resource "aws_security_group" "backend_sg" {
         cidr_blocks      = ["0.0.0.0/0"]
         ipv6_cidr_blocks = ["::/0"]
     }
+
+     tags = {
+       Name = "backend_sg"
+     }
+
 
 }
 
@@ -213,6 +235,11 @@ resource "aws_security_group" "database_sg" {
         ipv6_cidr_blocks = ["::/0"]
     }
 
+     tags = {
+       Name = "database_sg"
+     }
+
+
 }
 
 output "vpc_id" {
@@ -228,7 +255,7 @@ output "backend_subnet_id" {
 }
 
 output "database_subnet_id" {
-    value = aws_subnet.frontend_subnet.id
+    value = aws_subnet.database_subnet.id
 }
 
 output "database_sg_id" {
