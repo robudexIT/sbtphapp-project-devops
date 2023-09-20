@@ -30,3 +30,4 @@ resource "aws_instance" "sbtphapp_instance_template" {
 
 
 }
+

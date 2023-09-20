@@ -1,5 +1,5 @@
 resource "aws_lambda_function" "made_db_public" {
-    filename = "lambda/make_db_public.zip"
+    filename = "lambda/makepublic/make_db_public.zip"
     role = var.sbtphapp_lambda_role_arn
     function_name = "made_db_public_function"
     handler = "make_db_public.lambda_handler"

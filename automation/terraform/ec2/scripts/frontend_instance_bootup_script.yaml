@@ -39,7 +39,7 @@ write_files:
                 sudo systemctl restart apache2
 
 
-                sudo sed -i "s/AWS_REGION_HERE/${AWS::Region}/" /home/ubuntu/update_api_ip.sh
+                sudo sed -i "s/AWS_REGION_HERE/$REGION/" /home/ubuntu/update_api_ip.sh
                 sudo chmod +x /home/ubuntu/update_api_ip.sh
                 sudo chown -R ubuntu:ubuntu /home/ubuntu/update_api_ip.sh
 
