@@ -9,6 +9,7 @@ data "cloudinit_config" "server_config" {
         mysql_rep_user = var.mysql_rep_user
         mysql_rep_pwd  = var.mysql_rep_pwd
         aws_region =  var.region
+
     })
   }
 }

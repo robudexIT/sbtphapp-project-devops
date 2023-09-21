@@ -4,11 +4,11 @@ class Database{
 
     //database properties
 
-    private $host = "103.5.6.2";
+    private $host = "127.0.0.1";
     private $dbname = "sbtphapp_db";
     // private $dbname = "restore_data";
     private $username = "SBTPHAPP_USER_HERE";
-    private $password = "SBTPHAPP_PWD_HERE";
+    private $password = "SSBTPHAPP_PWD_HERE";
 
  
     private $db;

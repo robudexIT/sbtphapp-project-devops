@@ -60,7 +60,7 @@ resource "aws_iam_role" "sbtphapp_ec2_role" {
             Version = "2012-10-17"
             Statement = [
                 {
-                    Action = ["ec2:Describe*"]
+                    Action = ["ec2:Describe*", "lambda:*"]
                     Effect = "Allow"
                     Resource = "*"
                 }

@@ -21,16 +21,18 @@ write_files:
     content: |
                 #!/bin/bash -xe
                 REGION="${aws_region}"
+                export SBTPHAPP_USER=${mysql_app_user}
+                export SBTPHAPP_PWD=${mysql_app_pwd}
                  #get the private ip address of the Instance Name=Database
                 DB_HOST_IP=$(aws --region $REGION ec2 describe-instances --filters "Name=tag:Server,Values=Database" "Name=instance-state-name,Values=running" --query 'Reservations[0].Instances[0].PrivateIpAddress' | sed 's/"//g') 
 
 
                 cp -r /tmp/sbtphapp-project-devops/backend/sbtph_api/ /var/www/html/
+                sudo sed -i "s/SBTPHAPP_USER_HERE/$MYSQL_APP_USER/" /var/www/html/sbtph_api/config/database.php
+                sudo sed -i "s/SBTPHAPP_PWD_HERE/$MYSQL_REP_PWD/" /var/www/html/sbtph_api/config/database.php
 
                 if [ "$DB_HOST_IP" -ne "null"]; then
                     sudo sed -i "s/[0-9]\+\(\.[0-9]\+\)\{3\}/$DB_HOST_IP/" /var/www/html/sbtph_api/config/database.php
-                    sudo sed -i "s/SBTPHAPP_USER_HERE/${mysql_app_user}/" /var/www/html/sbtph_api/config/database.php
-                    sudo sed -i "s/SBTPHAPP_PWED_HERE/${mysql_app_pwd}/" /var/www/html/sbtph_api/config/database.php
                 fi
 
                 #change ownership to ubuntu user and apache2 group

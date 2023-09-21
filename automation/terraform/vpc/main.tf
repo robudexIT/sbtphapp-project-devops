@@ -59,9 +59,9 @@ resource "aws_subnet" "database_subnet" {
   vpc_id  = aws_vpc.sbtphapp_vpc.id
   availability_zone =  data.aws_availability_zones.available.names[2]
   cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[2]]
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
 
-    tags = {
+    tags = { 
     Name = "database_subnet"
   }
 
@@ -75,6 +75,11 @@ resource "aws_route_table_association" "sbtphapp_public_rt_assoc_backend_subnet"
 
 resource "aws_route_table_association" "sbtphapp_public_rt_assoc_frontend_subnet" {
   subnet_id = aws_subnet.frontend_subnet.id
+  route_table_id = aws_route_table.sbtphapp_public_rt.id
+}
+
+resource "aws_route_table_association" "sbtphapp_public_rt_assoc_database_subnet" {
+  subnet_id = aws_subnet.database_subnet.id
   route_table_id = aws_route_table.sbtphapp_public_rt.id
 }
 

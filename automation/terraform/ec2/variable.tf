@@ -60,3 +60,18 @@ variable "instance_sg_id" {
 }
 
 
+variable "vpc_id" {
+  type = string 
+  default = ""
+}
+
+variable "function_name" {
+  type = string 
+  default = ""
+}
+
+variable "database_subnet_id" {
+  type = string 
+  default = ""
+}
+
