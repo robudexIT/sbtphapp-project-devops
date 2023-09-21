@@ -92,170 +92,132 @@ resource "aws_security_group_rule" "secondary_database_sg" {
 
 
 
-# module "primary_sbtphapp_db_instance" {
-#    source  = "./ec2"
+module "primary_sbtphapp_db_instance" {
+   source  = "./ec2"
 
-#    mysql_app_user = var.mysql_app_user
-#    mysql_app_pwd =  var.mysql_app_pwd 
-#    mysql_rep_user = var.mysql_rep_user 
-#    mysql_rep_pwd  = var.mysql_rep_pwd 
+   mysql_app_user = var.mysql_app_user
+   mysql_app_pwd =  var.mysql_app_pwd 
+   mysql_rep_user = var.mysql_rep_user 
+   mysql_rep_pwd  = var.mysql_rep_pwd 
   
-#    region =  "us-east-1"
-#    instance_name = "Database"
-#    instance_type = "t2.micro"
-#    iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
-#    subnet_id = module.primary_sbtphapp_vpc.database_subnet_id
-#    instance_sg_id = module.primary_sbtphapp_vpc.database_sg_id
-#    instance_bootup_script = "db_instance_bootup_script.yaml"
+   region =  "us-east-1"
+   instance_name = "Database"
+   instance_type = "t2.micro"
+   iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
+   subnet_id = module.primary_sbtphapp_vpc.database_subnet_id
+   instance_sg_id = module.primary_sbtphapp_vpc.database_sg_id
+   instance_bootup_script = "db_instance_bootup_script.yaml"
 
-# }
+}
 
-# module "primary_sbtphapp_backend_instance" {
-#    source  = "./ec2"
-#    mysql_app_user = var.mysql_app_user
-#    mysql_app_pwd =  var.mysql_app_pwd 
-#    mysql_rep_user = var.mysql_rep_user 
-#    mysql_rep_pwd  = var.mysql_rep_pwd 
-#    region =  "us-east-1"
-#    instance_name = "Backend"
-#    instance_type = "t2.micro"
-#    iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
-#    subnet_id = module.primary_sbtphapp_vpc.backend_subnet_id
-#    instance_sg_id = module.primary_sbtphapp_vpc.backend_sg_id
-#    instance_bootup_script = "backend_instance_bootup_script.yaml"
+module "primary_sbtphapp_backend_instance" {
+   source  = "./ec2"
+   mysql_app_user = var.mysql_app_user
+   mysql_app_pwd =  var.mysql_app_pwd 
+   mysql_rep_user = var.mysql_rep_user 
+   mysql_rep_pwd  = var.mysql_rep_pwd 
+   region =  "us-east-1"
+   instance_name = "Backend"
+   instance_type = "t2.micro"
+   iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
+   subnet_id = module.primary_sbtphapp_vpc.backend_subnet_id
+   instance_sg_id = module.primary_sbtphapp_vpc.backend_sg_id
+   instance_bootup_script = "backend_instance_bootup_script.yaml"
    
-#    depends_on = [ module.primary_sbtphapp_db_instance ]
+   depends_on = [ module.primary_sbtphapp_db_instance ]
 
-# }
+}
 
-# module "primary_sbtphapp_frontend_instance" {
-#    source  = "./ec2"
-#    mysql_app_user = var.mysql_app_user
-#    mysql_app_pwd =  var.mysql_app_pwd 
-#    mysql_rep_user = var.mysql_rep_user 
-#    mysql_rep_pwd  = var.mysql_rep_pwd 
+module "primary_sbtphapp_frontend_instance" {
+   source  = "./ec2"
+   mysql_app_user = var.mysql_app_user
+   mysql_app_pwd =  var.mysql_app_pwd 
+   mysql_rep_user = var.mysql_rep_user 
+   mysql_rep_pwd  = var.mysql_rep_pwd 
 
-#    region =  "us-east-1"
-#    instance_name = "Frontend"
-#    instance_type = "t2.micro"
-#    iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
-#    subnet_id = module.primary_sbtphapp_vpc.frontend_subnet_id
-#    instance_sg_id = module.primary_sbtphapp_vpc.frontend_sg_id
-#    instance_bootup_script = "frontend_instance_bootup_script.yaml"
+   region =  "us-east-1"
+   instance_name = "Frontend"
+   instance_type = "t2.micro"
+   iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
+   subnet_id = module.primary_sbtphapp_vpc.frontend_subnet_id
+   instance_sg_id = module.primary_sbtphapp_vpc.frontend_sg_id
+   instance_bootup_script = "frontend_instance_bootup_script.yaml"
 
-#    depends_on = [ module.primary_sbtphapp_backend_instance ]
+   depends_on = [ module.primary_sbtphapp_backend_instance ]
 
-# }
-
-# module "primary_sbtphapp_make_db_private_lambda" {
-#     source = "./lambda/makeprivate"
-#     sbtphapp_lambda_role_arn = module.sbtphapp_iam.sbtphapp_lambda_role_arn
-#     vpc_id = module.primary_sbtphapp_vpc.vpc_id
-#     database_subnet_id = module.primary_sbtphapp_vpc.database_subnet_id
-
-#     depends_on = [ module.primary_sbtphapp_frontend_instance ]
-    
-# }
+}
 
 
 
-# module "secondary_sbtphapp_db_instance" {
-#    source  = "./ec2"
-#    providers  = {
-#         aws = aws.secondary
-#     }
-#    mysql_app_user = var.mysql_app_user
-#    mysql_app_pwd =  var.mysql_app_pwd 
-#    mysql_rep_user = var.mysql_rep_user 
-#    mysql_rep_pwd  = var.mysql_rep_pwd 
+module "secondary_sbtphapp_db_instance" {
+   source  = "./ec2"
+   providers  = {
+        aws = aws.secondary
+    }
+   mysql_app_user = var.mysql_app_user
+   mysql_app_pwd =  var.mysql_app_pwd 
+   mysql_rep_user = var.mysql_rep_user 
+   mysql_rep_pwd  = var.mysql_rep_pwd 
   
-#    region =  "us-east-2"
-#    instance_name = "Database"
-#    instance_type = "t2.micro"
-#    iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
-#    subnet_id = module.secondary_sbtphapp_vpc.database_subnet_id
-#    instance_sg_id = module.secondary_sbtphapp_vpc.database_sg_id
-#    instance_bootup_script = "db_instance_bootup_script.yaml"
+   region =  "us-east-2"
+   instance_name = "Database"
+   instance_type = "t2.micro"
+   iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
+   subnet_id = module.secondary_sbtphapp_vpc.database_subnet_id
+   instance_sg_id = module.secondary_sbtphapp_vpc.database_sg_id
+   instance_bootup_script = "db_instance_bootup_script.yaml"
 
    
-# }
+}
 
-# module "secondary_sbtphapp_backend_instance" {
-#    source  = "./ec2"
-#    providers  = {
-#         aws = aws.secondary
-#     }
-#    mysql_app_user = var.mysql_app_user
-#    mysql_app_pwd =  var.mysql_app_pwd 
-#    mysql_rep_user = var.mysql_rep_user 
-#    mysql_rep_pwd  = var.mysql_rep_pwd 
-#    region =  "us-east-2"
-#    instance_name = "Backend"
-#    instance_type = "t2.micro"
-#    iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
-#    subnet_id = module.secondary_sbtphapp_vpc.backend_subnet_id
-#    instance_sg_id = module.secondary_sbtphapp_vpc.backend_sg_id
-#    instance_bootup_script = "backend_instance_bootup_script.yaml"
+module "secondary_sbtphapp_backend_instance" {
+   source  = "./ec2"
+   providers  = {
+        aws = aws.secondary
+    }
+   mysql_app_user = var.mysql_app_user
+   mysql_app_pwd =  var.mysql_app_pwd 
+   mysql_rep_user = var.mysql_rep_user 
+   mysql_rep_pwd  = var.mysql_rep_pwd 
+   region =  "us-east-2"
+   instance_name = "Backend"
+   instance_type = "t2.micro"
+   iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
+   subnet_id = module.secondary_sbtphapp_vpc.backend_subnet_id
+   instance_sg_id = module.secondary_sbtphapp_vpc.backend_sg_id
+   instance_bootup_script = "backend_instance_bootup_script.yaml"
 
-#    depends_on = [ module.secondary_sbtphapp_db_instance ]
-
-
-# }
-
-# module "secondary_sbtphapp_frontend_instance" {
-#    source  = "./ec2"
-#    providers  = {
-#         aws = aws.secondary
-#     }
-#    mysql_app_user = var.mysql_app_user
-#    mysql_app_pwd =  var.mysql_app_pwd 
-#    mysql_rep_user = var.mysql_rep_user 
-#    mysql_rep_pwd  = var.mysql_rep_pwd 
-
-#    region =  "us-east-2"
-#    instance_name = "Frontend"
-#    instance_type = "t2.micro"
-#    iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
-#    subnet_id = module.secondary_sbtphapp_vpc.frontend_subnet_id
-#    instance_sg_id = module.secondary_sbtphapp_vpc.frontend_sg_id
-#    instance_bootup_script = "frontend_instance_bootup_script.yaml"
-
-#    depends_on = [ module.secondary_sbtphapp_backend_instance ]
+   depends_on = [ module.secondary_sbtphapp_db_instance ]
 
 
-# }
+}
 
-# module "secondary_sbtphapp_make_db_private_lambda" {
+module "secondary_sbtphapp_frontend_instance" {
+   source  = "./ec2"
+   providers  = {
+        aws = aws.secondary
+    }
+   mysql_app_user = var.mysql_app_user
+   mysql_app_pwd =  var.mysql_app_pwd 
+   mysql_rep_user = var.mysql_rep_user 
+   mysql_rep_pwd  = var.mysql_rep_pwd 
 
-#       providers  = {
-#         aws = aws.secondary
-#     }
-#     source = "./lambda/makeprivate"
-#     sbtphapp_lambda_role_arn = module.sbtphapp_iam.sbtphapp_lambda_role_arn
-#     vpc_id = module.secondary_sbtphapp_vpc.vpc_id
-#     database_subnet_id = module.secondary_sbtphapp_vpc.database_subnet_id
+   region =  "us-east-2"
+   instance_name = "Frontend"
+   instance_type = "t2.micro"
+   iam_instance_profile = module.sbtphapp_iam.sbtphapp_instance_profile_name
+   subnet_id = module.secondary_sbtphapp_vpc.frontend_subnet_id
+   instance_sg_id = module.secondary_sbtphapp_vpc.frontend_sg_id
+   instance_bootup_script = "frontend_instance_bootup_script.yaml"
 
-#     depends_on = [ module.secondary_sbtphapp_vpc, module.sbtphapp_iam, module.secondary_sbtphapp_frontend_instance ]
-# }
+   depends_on = [ module.secondary_sbtphapp_backend_instance ]
+
+
+}
 
 
 
-# resource "aws_vpc_peering_connection" "sbtphapp_vpc_peering" {
-#     peer_vpic_id =  module.secondary_sbtphapp_vpc.vpc_id
-#     vpc_id = module.primary_sbtphapp_vpc.vpc_id
-#     auto_accept = true
 
-#     tags = {
-#         Name  = "sbtphapp_vpc_peering"
-#     }
-
-#     depends_on = [
-#          module.primary_sbtphapp_vpc,
-#          module.secondary_sbtphapp_vpc,
-         
-#     ]
-
-# }
 
 
 output "sbtphapp_lambda_role_arn" {
