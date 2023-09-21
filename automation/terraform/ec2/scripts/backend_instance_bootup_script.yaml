@@ -11,9 +11,6 @@ packages:
 package_update: true
 package_upgrade: true
 
-
-
-
 write_files: 
   - path: /run/backend.sh
     owner: root:root
@@ -28,8 +25,9 @@ write_files:
 
 
                 cp -r /tmp/sbtphapp-project-devops/backend/sbtph_api/ /var/www/html/
-                sudo sed -i "s/SBTPHAPP_USER_HERE/$MYSQL_APP_USER/" /var/www/html/sbtph_api/config/database.php
-                sudo sed -i "s/SBTPHAPP_PWD_HERE/$MYSQL_REP_PWD/" /var/www/html/sbtph_api/config/database.php
+
+                sudo sed -i "s/SBTPHAPP_USER_HERE/$SBTPHAPP_USER/" /var/www/html/sbtph_api/config/database.php
+                sudo sed -i "s/SBTPHAPP_PWD_HERE/$SBTPHAPP_PWD/" /var/www/html/sbtph_api/config/database.php
 
                 if [ "$DB_HOST_IP" -ne "null"]; then
                     sudo sed -i "s/[0-9]\+\(\.[0-9]\+\)\{3\}/$DB_HOST_IP/" /var/www/html/sbtph_api/config/database.php

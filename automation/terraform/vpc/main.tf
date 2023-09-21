@@ -197,13 +197,6 @@ resource "aws_security_group" "database_sg" {
 
     }
 
-    ingress {
-       description = "Allowed Http to any ip address source"
-        from_port = 80 
-        to_port = 80
-        protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
 
      ingress {
         description= "Allowed Mysql traffic from backend_sg"
@@ -220,6 +213,14 @@ resource "aws_security_group" "database_sg" {
         protocol = "tcp"
         security_groups = [aws_security_group.backend_sg.id]
     }
+
+    # ingress {
+    #     description= "Allowed all traffic from database subnet of another region"
+    #     from_port = 0
+    #     to_port = 0
+    #     protocol = "-1"
+    #     cidr_blocks = [var.other_region_db_cidr]
+    # }
 
       ingress {
         description= "Allowed all traffic from database_sg"
@@ -279,9 +280,6 @@ output "backend_sg_id" {
 output "sbtphapp_public_rt_id" {
     value = aws_route_table.sbtphapp_public_rt.id
 }
-
-
-
 
 
 
