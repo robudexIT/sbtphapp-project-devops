@@ -17,3 +17,4 @@ The infrastructure is the same, but this time instead of using Cloudformation we
      2. terraform plan -var-file=variables.tfvars  <br />
      3. terraform apply -var-file=variables.tfvars  -auto-approve <br />
   7. Wait for the terraform to finish creating the resources. When it's done, log in to your AWS account and check the resources created by the terraform.
+  8. After the project exercise, don't forget to run  **terraform destroy -var-file=variables.tfvars** to destroy all resources created by terraform. 
