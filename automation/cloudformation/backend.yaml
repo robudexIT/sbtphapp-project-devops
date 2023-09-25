@@ -113,6 +113,9 @@ Resources:
 
 
                 cp -r /tmp/sbtphapp-project-devops/backend/sbtph_api/ /var/www/html/
+                sudo sed -i "s/SBTPHAPP_USER_HERE/$SBTPHAPP_USER/" /var/www/html/sbtph_api/config/database.php
+                sudo sed -i "s/SBTPHAPP_PWD_HERE/$SBTPHAPP_PWD/" /var/www/html/sbtph_api/config/database.php
+               
                 cp /tmp/sbtphapp-project-devops/backend/update_db_ip.sh  /home/ubuntu/
                 cp /tmp/sbtphapp-project-devops/backend/startup-service/update_db_ip.service /etc/systemd/system/
                 cp /tmp/sbtphapp-project-devops/backend/cron/update_db_ip.crontab /tmp/
