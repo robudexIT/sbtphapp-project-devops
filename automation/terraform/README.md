@@ -1,5 +1,6 @@
-**In This section,  we are going to build the (lift-and-shift) project using another powerful IAAC technology called Terraform.
-The infrastructure is the same, but this time instead of using Cloudformation we used Terraform.**
+**In This section,  we are going to rebuild the below figure (lift-and-shift) project using another powerful  infrastructure-as-code  technology called Terraform.**
+
+![Alt Text](https://github.com/robudexIT/sbtphapp-project-devops/blob/lift-and-shift/sbtphapp_aws_lift_and_shift_architecture.png)
 
 **Notes: <br />**
   1. For simplicity, I don't include any lambda function, as I did in the Cloudformation section.
