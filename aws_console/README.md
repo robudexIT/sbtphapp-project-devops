@@ -144,7 +144,7 @@ Include a brief description and a diagram of the architecture built using the AW
        
        ```
   - Enter your password
-  - from mysql console type use sbtphapp_db; then  type show tables;
+  - from mysql console type use **sbtphapp_db;** then  type **show tables;**
   - If you can see these tables like the figure below, restoration is successful.
   
 
