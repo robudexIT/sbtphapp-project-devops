@@ -27,14 +27,23 @@ Mappings:
      us-east-1:
        a : 192.168.1.0/24 
        b : 192.168.2.0/24
-       c : 192.168.50.0/24 
+       c : 192.168.10.0/24
+       d:  192.168.11.0/24
+       e:  192.168.50.0/24
+       f: 192.168.51.0/24
 
      us-east-2:
        a : 172.16.1.0/24 
        b : 172.16.2.0/24
        c : 172.16.50.0/24     
       
-  
+Conditions:
+  Region1CreateResources: !Equals 
+    - !Ref AWS::Region   
+    - us-east-1
+  Region2CreateResources: !Equals 
+    - !Ref AWS::Region   
+    - us-east-2
 Resources:
   SBTPHAPPVPC:
     Type: AWS::EC2::VPC
@@ -72,6 +81,7 @@ Resources:
 
   SBTPHAPPrvlicRT:
     Type: AWS::EC2::RouteTable 
+    Condition:  Region1CreateResources
     Properties:
       VpcId: !Ref SBTPHAPPVPC
       Tags: 
@@ -86,21 +96,38 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0 
       GatewayId: !Ref SBTPHAPPIGW 
 
-  FrontendPubSubRTAssoc:
+  FrontendPub01SubRTAssoc:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition:  Region1CreateResources
     Properties:
-      SubnetId: !Ref FrontendPubSub
+      SubnetId: !Ref FrontendPubSub01
+      RouteTableId: !Ref SBTPHAPPublicRT 
+
+  FrontendPub02SubRTAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition:  Region1CreateResources
+    Properties:
+      SubnetId: !Ref FrontendPubSub02
       RouteTableId: !Ref SBTPHAPPublicRT 
   
-  BackendPubSubRTAssoc:
+  BackendPub01SubRTAssoc:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition:  Region1CreateResources
     Properties:
-      SubnetId: !Ref BackendPubSub
+      SubnetId: !Ref BackendPubSub01
+      RouteTableId: !Ref SBTPHAPPublicRT
+
+  BackendPub02SubRTAssoc:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition:  Region1CreateResources
+    Properties:
+      SubnetId: !Ref BackendPubSub02
       RouteTableId: !Ref SBTPHAPPublicRT
 
 
-  FrontendPubSub: 
+  FrontendPubSub01: 
     Type: AWS::EC2::Subnet 
+    Condition:  Region1CreateResources
     Properties:
       AvailabilityZone: !Select 
         - 0 
@@ -111,53 +138,158 @@ Resources:
       VpcId: !Ref SBTPHAPPVPC
       Tags:
         - Key: Name 
-          Value: FrontendPubSub
+          Value: FrontendPubSub01
 
-  BackendPubSub: 
+  FrontendPubSub02: 
     Type: AWS::EC2::Subnet 
+    Condition:  Region1CreateResources
     Properties:
       AvailabilityZone: !Select 
-        - 1
+        - 1 
         - Fn::GetAZs: !Ref 'AWS::Region'
+
       CidrBlock: !FindInMap [VPCSubnet, !Ref 'AWS::Region', b]
       MapPublicIpOnLaunch: true
       VpcId: !Ref SBTPHAPPVPC
-      Tags: 
+      Tags:
         - Key: Name 
-          Value: BackendPubSub
+          Value: FrontendPubSub02        
 
-  DatabasePrivSub: 
+  BackendPubSub01: 
     Type: AWS::EC2::Subnet 
+    Condition:  Region1CreateResources
     Properties:
-      MapPublicIpOnLaunch: false
       AvailabilityZone: !Select 
         - 2
         - Fn::GetAZs: !Ref 'AWS::Region'
       CidrBlock: !FindInMap [VPCSubnet, !Ref 'AWS::Region', c]
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref SBTPHAPPVPC
+      Tags: 
+        - Key: Name 
+          Value: BackendPubSub01
+  
+  BackendPubSub02: 
+    Type: AWS::EC2::Subnet 
+    Condition:  Region1CreateResources
+    Properties:
+      AvailabilityZone: !Select 
+        - 3
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: !FindInMap [VPCSubnet, !Ref 'AWS::Region', d]
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref SBTPHAPPVPC
+      Tags: 
+        - Key: Name 
+          Value: BackendPubSub02
+
+
+  DatabasePrivSub01: 
+    Type: AWS::EC2::Subnet 
+    Condition:  Region1CreateResources
+    Properties:
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select 
+        - 4
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: !FindInMap [VPCSubnet, !Ref 'AWS::Region', e]
       MapPublicIpOnLaunch: false
       VpcId: !Ref SBTPHAPPVPC
       Tags: 
         - Key: Name 
-          Value: DatabasePrivSub
-  
-  BackendSGToDatabaseSg:
-    Type: AWS::EC2::SecurityGroupIngress
-    Properties:
-      Description: Allowed all Traffic from BackendSg to DatabaseSg
-      SourceSecurityGroupId: !Ref BackendSg
-      GroupId: !Ref DatabaseSg
-      IpProtocol: -1 
+          Value: DatabasePrivSub01
 
-  FrontendSgToBackendSg:
-    Type: AWS::EC2::SecurityGroupIngress
+  DatabasePrivSub02: 
+    Condition:  Region1CreateResources
+    Type: AWS::EC2::Subnet 
     Properties:
-      Description: Allowed All Traffic From FrontendSg to BackendSg
-      SourceSecurityGroupId: !Ref FrontendSg 
-      GroupId: !Ref BackendSg 
-      IpProtocol: -1 
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select 
+        - 5
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: !FindInMap [VPCSubnet, !Ref 'AWS::Region', f]
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref SBTPHAPPVPC
+      Tags: 
+        - Key: Name 
+          Value: DatabasePrivSub02
+
+  DatabasePrivSubReplica01: 
+    Condition:  Region2CreateResources
+    Type: AWS::EC2::Subnet 
+    Properties:
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select 
+        - 0
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: !FindInMap [VPCSubnet, !Ref 'AWS::Region', a]
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref SBTPHAPPVPC
+      Tags: 
+        - Key: Name 
+          Value: DatabasePrivSubReplica01
+          
+  DatabasePrivSubReplica02: 
+    Condition:  Region2CreateResources
+    Type: AWS::EC2::Subnet 
+    Properties:
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select 
+        - 1
+        - Fn::GetAZs: !Ref 'AWS::Region'
+      CidrBlock: !FindInMap [VPCSubnet, !Ref 'AWS::Region', b]
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref SBTPHAPPVPC
+      Tags: 
+        - Key: Name 
+          Value: DatabasePrivSubReplica02        
+
+  DBSubnetGroupRegion1: 
+    Condition:  Region1CreateResources
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: Subnet For RDS Instance
+      DBSubnetGroupName: DBSubnetGroupRegion1
+      SubnetIds: 
+        - !Ref  DatabasePrivSub01
+        - !Ref  DatabasePrivSub02
+      Tags: 
+        - Key: Name 
+          Value:  DBSubnetGroupRegion1
+
+  DBSubnetGroupRegion2: 
+    Condition:  Region2CreateResources
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: Subnet For RDS Instance
+      DBSubnetGroupName:  DBSubnetGroupRegion2
+      SubnetIds: 
+        - !Ref  DatabasePrivSubReplica01
+        - !Ref  DatabasePrivSubReplica02
+      Tags: 
+        - Key: Name 
+          Value:  DBSubnetGroupRegion2
+      
+  # BackendSGToDatabaseSg:
+  # BackendSGToDatabaseSg:
+  #   Type: AWS::EC2::SecurityGroupIngress
+  #   Properties:
+  #     Description: Allowed all Traffic from BackendSg to DatabaseSg
+  #     SourceSecurityGroupId: !Ref BackendSg
+  #     GroupId: !Ref DatabaseSg
+  #     IpProtocol: -1 
+
+  # FrontendSgToBackendSg:
+  #   Type: AWS::EC2::SecurityGroupIngress
+  #   Properties:
+  #     Description: Allowed All Traffic From FrontendSg to BackendSg
+  #     SourceSecurityGroupId: !Ref FrontendSg 
+  #     GroupId: !Ref BackendSg 
+  #     IpProtocol: -1 
 
   FrontendSgToItself:
     Type: AWS::EC2::SecurityGroupIngress
+    Condition:  Region1CreateResources
     Properties:
       Description: Allowed All Traffic From FrontendSg to Itself
       SourceSecurityGroupId: !Ref FrontendSg 
@@ -166,6 +298,7 @@ Resources:
 
   BackendSgToItself:
     Type: AWS::EC2::SecurityGroupIngress
+    Condition:  Region1CreateResources
     Properties:
       Description: Allowed All Traffic From  BackendSg to Itself
       SourceSecurityGroupId: !Ref BackendSg 
@@ -194,9 +327,21 @@ Resources:
         - Key: Name 
           Value: DatabaseSg
 
+  DatabaseSgAlSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition:  Region1CreateResources
+    Properties: 
+      Description: String
+      FromPort: 3306
+      GroupId: !Ref DatabaseSg
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref BackendSg
+      ToPort: 3306
+
   
   BackendSg:  
     Type: AWS::EC2::SecurityGroup 
+    Condition:  Region1CreateResources
     Properties:
       GroupDescription: "Enable mariadb access via 3306 from the backend-Sg source. And allow ssh access on my IP address as a source"
       VpcId: !Ref SBTPHAPPVPC
@@ -205,7 +350,7 @@ Resources:
           FromPort: 22
           IpProtocol: tcp  
           ToPort: 22 
-        - CidrIp: 0.0.0.0/0
+        - SourceSecurityGroupId: !Ref BackendELBSg
           FromPort: 80
           IpProtocol: tcp  
           ToPort: 80
@@ -215,6 +360,7 @@ Resources:
 
   FrontendSg:  
     Type: AWS::EC2::SecurityGroup 
+    Condition:  Region1CreateResources
     Properties:
       GroupDescription: "Enable mariadb access via 3306 from the backend-Sg source. And allow ssh access on my IP address as a source"
       VpcId: !Ref SBTPHAPPVPC
@@ -223,7 +369,7 @@ Resources:
           FromPort: 22
           IpProtocol: tcp  
           ToPort: 22 
-        - CidrIp: 0.0.0.0/0
+        - SourceSecurityGroupId: !Ref FrontendELBSg
           FromPort: 80
           IpProtocol: tcp  
           ToPort: 80
@@ -231,152 +377,66 @@ Resources:
         - Key: Name 
           Value: FrontendSg
 
-  LambdaIAMRole:
-    Type: 'AWS::IAM::Role'
-    DependsOn: SBTPHAPPVPC
+  FrontendELBSg:  
+    Type: AWS::EC2::SecurityGroup 
+    Condition:  Region1CreateResources
     Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Path: /
-      Policies:
-        - PolicyName: root
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Effect: Allow
-                Action:
-                  - 'ec2:*'
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - 'logs:CreateLogGroup'
-                  - 'logs:CreateLogStream'
-                  - 'logs:PutLogEvents'
-                Resource: 'arn:aws:logs:*:*:*'
-  LambdaFunction:
-    Type: 'AWS::Lambda::Function'
+      GroupDescription: "Enable Outside World to Access ELB port 80 and 443"
+      VpcId: !Ref SBTPHAPPVPC
+      SecurityGroupIngress: 
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          IpProtocol: tcp  
+          ToPort: 80 
+        - CidrIp: 0.0.0.0/0
+          FromPort: 443
+          IpProtocol: tcp  
+          ToPort: 443 
+      Tags:
+        - Key: Name 
+          Value: FrontendELBSg
+
+  BackendELBSg:  
+    Type: AWS::EC2::SecurityGroup 
+    Condition:  Region1CreateResources
     Properties:
-      Handler: index.lambda_handler
-      Role: !GetAtt LambdaIAMRole.Arn
-      Runtime: python3.9
-      Timeout: 50
-      Code:
-        ZipFile: |
-            from __future__ import print_function
-            import json
-            import boto3
-            import urllib3
-            import cfnresponse
-
-            SUCCESS = "SUCCESS"
-            FAILED = "FAILED"
-
-            http = urllib3.PoolManager()
-
-            print('Loading function')
-            client = boto3.client('ec2')
-
-            def lambda_handler(event, context):
-                print("Received event: " + json.dumps(event, indent=2))
-                responseData={}
-                try:
-                    if event['RequestType'] == 'Delete':
-                        print("Request Type:",event['RequestType'])
-                        print("Delete Request - No Physical resources to delete")
-                        cfnresponse.send(event, context, 'SUCCESS', {}, "CustomResourcePhysicalID")
-                    elif event['RequestType'] == 'Create':
-                        print("Request Type:",event['RequestType'])
-                        VPCID=event['ResourceProperties']['VPCID']
-                        DBSUBNETID=event['ResourceProperties']['DBSUBNETID']
-                        PUBLICRTID=event['ResourceProperties']['PUBLICRTID']
-                        AssociationId=enable_dbsubnet_public(VPCID,DBSUBNETID,PUBLICRTID)
-                        responseData={'AssociationId':AssociationId}
-                        print(responseData)
-                        responseStatus = 'SUCCESS'
-                        print("Sending response to custom resource")
-                        cfnresponse.send(event, context, responseStatus, responseData, "CustomResourcePhysicalID")
-                    elif event['RequestType'] == 'Update':
-                        print("Request Type:",event['RequestType'])
-                        VPCID=event['ResourceProperties']['VPCID']
-                        DBSUBNETID=event['ResourceProperties']['DBSUBNETID']
-                        PUBLICRTID=event['ResourceProperties']['PUBLICRTID']
-                        AssociationId=enable_dbsubnet_public(VPCID,DBSUBNETID,PUBLICRTID)
-                        responseData={'AssociationId':AssociationId}
-                        print(responseData)
-                        print("Sending response to custom resource")
-                        responseStatus = 'SUCCESS'
-                        print("responseStatus: " + responseStatus)
-                        cfnresponse.send(event, context, responseStatus, responseData, "CustomResourcePhysicalID")
-                except Exception as e:
-                    print('Failed to process:', e)
-                    responseStatus = 'FAILED'
-                    responseData = {'Failure': 'Something bad happened.'}
-                    cfnresponse.send(event, context, responseStatus, responseData, "CustomResourcePhysicalID")
-
-            def enable_dbsubnet_public(VPCID,DBSUBNETID,PUBLICRTID):
-              client.modify_subnet_attribute(
-                  MapPublicIpOnLaunch={
-                      'Value': True
-                  },
-                  SubnetId=DBSUBNETID,
-
-              )
-                #associte in public route to gain internet access
-              client.associate_route_table(
-                    RouteTableId=PUBLICRTID,
-                    SubnetId=DBSUBNETID,
-                  
-               )
-              response = client.describe_route_tables(
-                Filters = [
-                    {
-                    'Name': 'association.subnet-id',
-                    'Values': [DBSUBNETID]
-                    },
-                    {
-                      'Name': 'vpc-id',
-                      'Values': [VPCID]
-                    }
-                ]
-               )
-
-                # print("Printing the VPC Route Table ID ....")
-                # RouteTableID=response['RouteTables'][0]['RouteTableId']
-                # print(RouteTableID)
-              AssociationId = response['RouteTables'][0]['Associations'][0]['RouteTableAssociationId']
-              return AssociationId 
+      GroupDescription: "Allow FrontendELB to ACCESS port 80"
+      VpcId: !Ref SBTPHAPPVPC
+      SecurityGroupIngress: 
+        - SourceSecurityGroupId: !Ref FrontendSg
+          FromPort: 80
+          IpProtocol: tcp  
+          ToPort: 80
+      Tags:
+        - Key: Name 
+          Value: BackendELBSg
 
 
-  Lambdatrigger3:
-    Type: 'Custom::RouteTableLambda'
-    Properties:
-      ServiceToken: !GetAtt LambdaFunction.Arn
-      VPCID: !Ref SBTPHAPPVPC
-      DBSUBNETID: !Ref  DatabasePrivSub
-      PUBLICRTID: !Ref  SBTPHAPPublicRT
+
+  
 Outputs:
   VPCID: 
     Value: !Ref SBTPHAPPVPC
   DatabaseSg: 
     Value: !Ref DatabaseSg
   BackendSg: 
+    Condition:  Region1CreateResources
     Value: !Ref BackendSg
   FrontendSg:
+    Condition:  Region1CreateResources 
     Value: !Ref FrontendSg
-  BackendPubSub: 
-    Value: !Ref BackendPubSub 
-  FrontendPubSub: 
-    Value: !Ref FrontendPubSub 
-  DatabasePrivSub:
-    Value: !Ref DatabasePrivSub
-  AssociationId: 
-    Value: !GetAtt Lambdatrigger3.AssociationId
+  DBSubnetGroupRegion1:
+     Condition:  Region1CreateResources
+     Value: !Ref DBSubnetGroupRegion1
+  DBSubnetGroupRegion2:
+     Condition:  Region2CreateResources   
+     Value: !Ref DBSubnetGroupRegion2
+  # BackendPubSub: 
+  #   Value: !Ref BackendPubSub 
+  # FrontendPubSub: 
+  #   Value: !Ref FrontendPubSub 
+  # DatabasePrivSub:
+  #   Value: !Ref DatabasePrivSub
+  
 
 

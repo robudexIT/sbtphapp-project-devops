@@ -1,0 +1,62 @@
+--- 
+AWSTemplateFormatVersion: 2010-09-09
+Description: RDS Storage Encrypted
+Parameters:
+  SourceDBInstanceIdentifier:
+    Type: String
+    Default: "arn:aws:rds:us-east-1:427875724091:db:sbtphappdbinstances"
+  DBInstanceType:
+    Type: String
+    Default: db.t3.micro
+  SourceRegion:
+    Type: String
+    Default: us-east-1
+  DBAllocatedStorage:
+      Default: '20'
+      Description: The size of the database (GiB)
+      Type: Number
+      MinValue: '20'
+      MaxValue: '65536'
+      ConstraintDescription: must be between 20 and 65536 GiB.   
+  DBSubnetGroupName:
+      Type: String
+      Default: dbsubnetgroupregion2
+
+  VPCSecurityGroup:
+      Type: String
+      Default: sg-04a88a1e6709ab421
+
+Resources:
+  MyKey:
+    Type: "AWS::KMS::Key"
+    Properties:
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: key-default-1
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Join
+                - ""
+                - - "arn:aws:iam::"
+                  - !Ref "AWS::AccountId"
+                  - ":root"
+            Action: "kms:*"
+            Resource: "*"
+  REPLICARDS:
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      AllocatedStorage: !Ref DBAllocatedStorage
+      DBInstanceClass: !Ref DBInstanceType
+      DBSubnetGroupName: !Ref DBSubnetGroupName
+      VPCSecurityGroups:
+         - !Ref VPCSecurityGroup
+      SourceDBInstanceIdentifier: !Ref SourceDBInstanceIdentifier
+      SourceRegion: !Ref SourceRegion
+      KmsKeyId: !Ref MyKey
+
+Outputs:
+  InstanceId:
+    Description: InstanceId of the newly created RDS Instance
+    Value: !Ref  REPLICARDS                         
