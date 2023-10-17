@@ -60,7 +60,7 @@ Include a brief description and a diagram of the architecture built using the AW
 - For `SSHLocation`, use `0.0.0.0/0` (or your chosen IP address for SSH access) and for `VpcName`, use `primaryVpc`. Click "Next."instance)  For VpcName: primaryVpc. Click Next
   - Go to the bottom and click Next
   - Got to the bottom and click Submit
-  - When cloudformation stack Status is : CREATE_COMPLETE as can be seen below
+  - When cloudformation stack Status is : **CREATE_COMPLETE** as can be seen below
 
   ![PrimayVPC Stack](../screenshots/primary_stack_complete.png) 
 
@@ -72,37 +72,37 @@ Include a brief description and a diagram of the architecture built using the AW
   - For SSHLocation: 0.0.0.0/0 (or your chosen ip address you want to allow ssh access to your instance)  For VpcName: replica-vpc. Click Next
   - Go to the bottom and click Next
   - Got to the bottom and click Submit
-  - When cloudformation stack Status is : CREATE_COMPLETE as can be seen below
+  - When cloudformation stack Status is : **CREATE_COMPLETE** as can be seen below
 
   ![BackupVPC Stack](../screenshots/backup_stack_complete.png) 
 
-  - click the Outputs tab. And availble to see the resources that created by cloudformation.
+  - click the Outputs tab. And available to see the resources created by Cloudformation.
 
    ![PrimayVPC Stack Outputs](../screenshots/backup_stack_outputs.png) 
 
 
 ### 2. Creating primary RDS instance.
-  - Switch back to us-east-1 and goto RDS Services and click Create database
+  - Switch back to us-east-1 go to RDS Services and click Create database
   - For Engine options, select MySQL For Engine Version: MySQL 5.7.43 
-  - Templates shoud be Free tier
-  - DB instance identifier: primarydbinstance
+  - Templates should be Free tier
+  - DB instance identifier: **primarydbinstance**
   - Master username: admin
-  - For password check Auto generate a password
-  - DB instance class: db.t3.micro 
+  - For password check Auto-generate a password
+  - DB instance class: **db.t3.micro** 
   - Storage type: General Purpose SSD (gp2), Allocated storage: 20(GiB)
   - For Virtual private cloud(VPC). choose the vpc with the name: primaryVpc 
-  - DB subnet group: dbsubnetgroupregion1
+  - DB subnet group: **dbsubnetgroupregion1**
   - Public access: choose No
   - VPC security group (firewall)->Choose existing and choose security group with the name: primary-vpc-stack-DatabaseSg-*****
   - Click Additional configuration and these Database options
-  - Initial database name : sbtphapp_db
-  - Because we plan to make replication on this rds instance, we need atleast 1 Backup retention. 
+  - Initial database name : **sbtphapp_db**
+  - Because we plan to make replication on this rds instance, we need at least 1 Backup retention. 
   - Click Create database and wait for RDS Instance status:Available 
-  - Click View credentials details. And the save the db the credentials. This message will pop up once.Its important to secure you credentials before proceeding to the next steps
-  - In addition, go to primarydbinstance -> Connectivity & security and save the Endpoint string.You will need it later.
+  - Click View credentials details. And then save the db credentials. This message will pop up once. It's important to secure your credentials before proceeding to the next steps
+  - In addition, go to primarydbinstance -> Connectivity & security and save the Endpoint string. You will need it later.
 
 
-### 3. Launch Temporary Instance to restore dabase to rds instance.
+### 3. Launch Temporary Instance to restore database to rds instance.
    - Launch an EC2 Instance on us-east-1 region with this following settings:
    - Name: temporaryinstance
    - AMI: Ubuntu Server 20.04 LTS(HVM), SSD Volume Type (Free tier eligible)
@@ -126,8 +126,8 @@ Include a brief description and a diagram of the architecture built using the AW
   - Click Launch instance and wait for status: 2/2 checks passed
   - Click the  temporayinstance-> Actions-> Connect
   - Click SSH client tab and copy the connection string under the Example: 
-  - goto the terminal -> cd to your working project directory and paste the connection string and press enter. if you see the message (Are you sure you want to continue connecting (yes/no/[fingerprint]))? type yes.
-  - Once connectected, type this command to restore database from your working directory to rds databaase instance.   
+  - goto the terminal -> cd to your working project directory, paste the connection string and press enter. if you see the message (Are you sure you want to continue connecting (yes/no/[fingerprint]))? type yes.
+  - Once connected, type this command to restore the database from your working directory to the rds database instance.   
      ```bash
        cd /tmp/sbtphapp-project-devops/database
        ls
@@ -138,14 +138,14 @@ Include a brief description and a diagram of the architecture built using the AW
 
   ![Mysql Console01](../screenshots/mysql_screenshot01.png) 
 
-  - To verify that the database was succesfully restore login on the by following command:
+  - To verify that the database was successfully restored, login on the following command:
          ```bash
         mysql -uadmin  -h <YOUR_DB_INSTANCE_ENDPOINT>  -p
        
        ```
   - Enter your password
   - from mysql console type use sbtphapp_db; then  type show tables;
-  - If you can see this tables like the figure below, restoration are successful.
+  - If you can see these tables like the figure below, restoration is successful.
   
 
     ![Mysql Show tables](../screenshots/show_tables.png) 
@@ -164,30 +164,30 @@ Include a brief description and a diagram of the architecture built using the AW
   - Instance Type: t2.micro
   - Key pair: <YOUR US-EAST-1 EC2 KEYPAIR>
   - security groups: primary-vpc-stack-BackendSg-******
-  - Open backend.sh that can be found under userdata folder of your working project directory. change the DB_HOST_IP, SBTPHAPP_USER and SBTPHAPP_PWD with your own rds instance credentials.
-  - Goto User data of launch tempalte section and paste the content of the newly updated backend.sh file
+  - Open backend.sh which can be found under userdata folder of your working project directory. change the DB_HOST_IP, SBTPHAPP_USER and SBTPHAPP_PWD with your own rds instance credentials.
+  - Goto User data of the launch template section and paste the content of the newly updated backend.sh file
   
   ![Backend_Launch_template User data](../screenshots/backend_launch_template_user_data.png)
 
 
     ### Create backendASG
   - Under EC2 Services click Auto Scaling Groups
-  - Auto Scaling group name: backendAsg
+  - Auto Scaling group name: **backendAsg**
   - Launch template: backend_launch_template (the one that you created earlier.) and Click Next
   - Under Network, on VPC: primaryVpc and on Availability Zones and subnets: BackendPubSub01, and BackendPubSub02. Then Click Next
 
    ![Backend_VPC_Subnets](../screenshots/backendasg_vpc_subnets.png)
 
  - Load balancing: No load balancer (for now)
- - Health checks : EC2 health checks (for now)
+ - Health checks: EC2 health checks (for now)
  - go to the bottom and click Next
  - Group size (Desire capacity: 1, Minimum capacity: 1, Maximum capacity: 1)
  - go to the bottom and click Next
- - Dont  add any notifications and just Click Next
- - For  Tags add tag (Key: Name, Value: BackendAsg) and Click Next
- - Finally  Click Create Auto Scaling group. And wait until the Status of become Active / Ready 
+ - Don't  add any notifications and just Click Next
+ - For  Tags add a tag (Key: Name, Value: BackendAsg) and Click Next
+ - Finally,  Click Create Auto Scaling group. And wait until the Status of becoming Active / Ready 
  - When backendAsg is ready, click it go to Instance Management tab. You should see one Instance created.
- - Click the Instance ID. Wait for the Instance to Status to: 2/2 checks passed.
+ - Click the Instance ID. Wait for the Instance to Status to 2/2 checks passed.
  - As of now, we can test the single backend instance if it is working.
  - SSH to this instance the type the following command:
    ```bash
@@ -213,7 +213,7 @@ Include a brief description and a diagram of the architecture built using the AW
   - VPC: primaryVpc
   - Under Health checks (Health check protocol: HTTP, Health check path: /)
   - Tags (Key: Name, Value: BackendTg) and Click Next
-  - Goto the bottom and click Create taget group
+  - Go to the bottom and click Create target group
  
     ### Create load balancer
   - Under EC2 Services->Load Balancing click Load Balancers and Click Create load balancer
@@ -236,9 +236,9 @@ Include a brief description and a diagram of the architecture built using the AW
   ### Test BackendALB
   - Goto EC2-> Load Balancers
   - Select BackendALB
-  - Under Description: Copy DNS name  and paste it to browser address bar.
-  - add /sbtph_api/api/active.php at the end the BackendALB Dns record and press enter.
-  - The result should equal in screenshot below
+  - Under Description: Copy the DNS name  and paste it to the browser address bar.
+  - add /sbtph_api/api/active.php at the end the BackendALB DNS record and press enter.
+  - The result should be equal in the screenshot below
 
   ![BackendALB API TEST](../screenshots/backendalb_api_test.png)
 
@@ -252,8 +252,8 @@ Include a brief description and a diagram of the architecture built using the AW
   - Instance Type: t2.micro
   - Key pair: <YOUR US-EAST-1 EC2 KEYPAIR>
   - security groups: primary-vpc-stack-FrontendSg-******
-  - Open frontend.sh that can be found under userdata folder of your working project directory. change the AWS_API_API equals to the DNS Name of BackendALB
-  - Goto User data of launch tempalte section and paste the content of the newly updated frontend.sh file
+  - Open frontend.sh which can be found under userdata folder of your working project directory. change the AWS_API_API equals to the DNS Name of BackendALB
+  - Goto User data of the launch template section and paste the content of the newly updated frontend.sh file
   
   ![Frontedn Launch_template User data](../screenshots/frontend_launch_template_user_data.png)
 
@@ -266,15 +266,15 @@ Include a brief description and a diagram of the architecture built using the AW
 ![Backend_VPC_Subnets](../screenshots/frontend_vpc_subnets.png)
 
  - Load balancing: No load balancer (for now)
- - Health checks : EC2 health checks (for now)
+ - Health checks: EC2 health checks (for now)
  - go to the bottom and click Next
  - Group size (Desire capacity: 1, Minimum capacity: 1, Maximum capacity: 1)
  - go to the bottom and click Next
- - Dont  add any notifications and just Click Next
- - For  Tags add tag (Key: Name, Value: FrontendAsg) and Click Next
- - Finally  Click Create Auto Scaling group. And wait until the Status of become Active / Ready 
- - When frontendAsg is ready, click it go to Instance Management tab. You should see one Instance created.
- - Click the Instance ID. Wait for the Instance to Status to: 2/2 checks passed.
+ - Don't  add any notifications and just Click Next
+ - For  Tags add a tag (Key: Name, Value: FrontendAsg) and Click Next
+ - Finally,  Click Create Auto Scaling group. And wait until the Status of becoming Active / Ready 
+ - When frontendAsg is ready, click it and go to Instance Management tab. You should see one Instance created.
+ - Click the Instance ID. Wait for the Instance to Status to 2/2 checks passed.
  - As of now, we can test the single frontend instance if it is working.
  - Copy frontend instance Public IP address and add (/sbtph_app/)
    ```bash
@@ -286,7 +286,7 @@ Include a brief description and a diagram of the architecture built using the AW
 
   ![sbtph_app test](../screenshots/sbtphapp_instance_test.png)
 
-    ### Create target group
+    ### Create a target group
   - Under EC2 Services->Load Balancing click Target Groups and Click Create target group
   - Choose a target type: Instances
   - Target group name: FrontendTg
@@ -295,7 +295,7 @@ Include a brief description and a diagram of the architecture built using the AW
   - VPC: primaryVpc
   - Under Health checks (Health check protocol: HTTP, Health check path: /)
   - Tags (Key: Name, Value: FrontendTg) and Click Next
-  - Goto the bottom and click Create taget group
+  - Go to the bottom and click Create target group
  
     ### Create load balancer
   - Under EC2 Services->Load Balancing click Load Balancers and Click Create load balancer
@@ -312,31 +312,31 @@ Include a brief description and a diagram of the architecture built using the AW
   - Wait for the FrontendALB status to Active
  
   ### Edit FrontendASG Load balancing and Health checks attribute
-  - Click FrontendAsg and edit the Load balancing. Under Load balancers check (Applicaiton, Network or Gateway Load Balancers targets). Under dropdown list, Select FrontendTg. and click Update
+  - Click FrontendAsg and edit the Load balancing. Under Load balancers check (Application, Network or Gateway Load Balancers targets). Under the dropdown list, Select FrontendTg. and click Update
   - Click  BackendAsg and edit Health checks. Under Additional health check types, check (Turn on Elastic Load Balancer health checks) and click Update.
  
   ### Test BackendALB
   - Goto EC2-> Load Balancers
   - Select FrontendALB
-  - Under Description: Copy DNS name  and paste it to browser address bar.
-  - add /sbtph_app/ at the end the FrontendALB Dns record and press enter.
+  - Under Description: Copy the DNS name  and paste it to the browser address bar.
+  - add /sbtph_app/ at the end of the FrontendALB DNS record and press enter.
   - extension: 6336, secret: 99999
-  - The result should equal in screenshot below
+  - The result should be equal in the screenshot below
 
   ![FrontendALB App TEST](../frontendalb_app_test.png)
  
 
-At this point the project was done, and functional but its lack of availabilty and security features.
-making turning availability features is quite simple.But adding security features and custom domain, it will require a valid domain name.If you dont have domain name yet you can skip this section.
+At this point, the project was done, and functional but it lacked availability and security features.
+making turning availability features is quite simple. However, adding security features and a custom domain will require a valid domain name. If you don't have a domain name yet you can skip this section.
 
 ### 6 AVAILABILITY 
 
 ### Database (create replicadb)
- -  Click primarydbinstance goto Actions and select Create read relica
+ -  Click **primarydbinstance** go to Actions and select Create read replica
  
  ![replica](../screenshots/replica.png)
 
- -  Under Settings (Replica source: primarydbinstance, DB instance identifier: replicainstance,DB instance class: db.t3.micro)
+ -  Under Settings (Replica source: **primarydbinstance**, DB instance identifier: r**eplicainstance**,DB instance class: db.t3.micro)
  - Under AWS Region (Destination Region: US East(Ohio))
  - Availability: Single DB Instance (If you really high level of Availability Choose Multi-AZ DB Instance)
  - Network Type: IPv4
@@ -344,12 +344,12 @@ making turning availability features is quite simple.But adding security feature
  - Public access: Not publicly accessible
  - Existing VPC security groups: backup-vpc-stack-DatabaseSg-****
  - Click Create read replica
- - Wait until replicadbinstance status: Available
+ - Wait until r**eplicadbinstance** Status: Available
 
  ### Frontend and Backend
-  - Select backendAsg and edit the Group size (Desire capacity:2 Minimum:2 Maximum 4) and click Update
-  - Select frontendAsg and edit the Group size (Desire capacity:2 Minimum:2 Maximum 4) and click Update
-  - Wait for a couple of minutes and goto BackendTg and FrontendTg you should see two instances per target group.
+  - Select **backendAsg** and edit the Group size (Desire capacity:2 Minimum:2 Maximum 4) and click Update
+  - Select **frontendAsg** and edit the Group size (Desire capacity:2 Minimum:2 Maximum 4) and click Update
+  - Wait for a couple of minutes and go to BackendTg and FrontendTg you should see two instances per target group.
 
   ![backendTg](../screenshots/backendTg.png)
 
@@ -360,25 +360,25 @@ making turning availability features is quite simple.But adding security feature
  
  ### Create AWS Certificate
  - Goto AWS Certificate Manager (ACM)
- - Select Request certificate  -> then select Request a public certificate. (You should have valid domain name  to make it happend.)
- - In my case I have one (robudexdevops.com) so I can  request for certificate.
+ - Select Request certificate  -> then select Request a public certificate. (You should have a valid domain name  to make it happen.)
+ - In my case, I have one (robudexdevops.com) so I can  request for a certificate.
  - Under Domain names (Fully qualified domain name: *.YOUR_VALID_DOMAIN_NAME) eg. *.robudexdevops.com
  - Add Tags (Key:Name, Value:MyAppCert) and Click Request
- - You have  now Certificate ID but status is Pending validation. 
- - Click the your Certificated ID Copy the CNAME name 
+ - You have  now a Certificate ID but the status is Pending validation. 
+ - Click your Certificated ID Copy the CNAME name 
 
   ![cert cname](../screenshots/cert_cname_pending.png)
   
- - Open your godday account -> DNS Management -> DNS Records -> Add New Record
+ - Open your goddady account -> DNS Management -> DNS Records -> Add New Record
  - Under Type Select: CNAME , Name: (Paste your CNAME here but remove the trailing domain name) eg if my CNAME is _sldfoajlajr85.robudexdevops.com put only the _sldfoajlajr85. for the Value(copy the CNAME value but remove the trailing dot (.))
  
   ![cert cname goddady](../screenshots/cert_cname_goddady.png)
   
- - The request of certificate may take some time. 
- - If the status is now available, We can proceed to the next steps. Otherwise we have to wait.
+ - The request for a certificate may take some time. 
+ - If the status is now available, We can proceed to the next steps. Otherwise, we have to wait.
  
-  ### Adding backendALB and frontendALB dns name records to goddady
-  - Open your godday account -> DNS Management -> DNS Records -> Add New Record
+  ### Adding backendALB and frontendALB DNS name records to GoDaddy
+  - Open your GoDaddy account -> DNS Management -> DNS Records -> Add New Record
   - Type: CNAME, Name:sbtphapi , Value: (backendALB Domain Name)
   - Type: CNAME, Name:sbtphapp , Value: (frontendALB Domain Name)
 
