@@ -14,7 +14,7 @@ In this branch, we have refined our architecture with the aim of enhancing avail
 
 In the previous "lift-and-shift" branch, we built the following architecture:
 
-![Previous Architecture](https://github.com/robudexIT/sbtphapp-project-devops/blob/lift-and-shift/sbtphapp_aws_lift_and_shift_architecture.png)
+![Previous Architecture](screenshots/sbtphapp_aws_lift_and_shift_architecture.png)
 
 In this branch, here's the updated architecture:
 
