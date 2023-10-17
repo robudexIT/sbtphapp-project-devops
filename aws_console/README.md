@@ -323,7 +323,7 @@ Include a brief description and a diagram of the architecture built using the AW
   - extension: 6336, secret: 99999
   - The result should be equal in the screenshot below
 
-  ![FrontendALB App TEST](../frontendalb_app_test.png)
+  ![FrontendALB App TEST](../screenshots/frontendalb_app_test.png)
  
 
 At this point, the project was done, and functional but it lacked availability and security features.
