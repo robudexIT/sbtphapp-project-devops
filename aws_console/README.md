@@ -139,10 +139,9 @@ Include a brief description and a diagram of the architecture built using the AW
   ![Mysql Console01](../screenshots/mysql_screenshot01.png) 
 
   - To verify that the database was successfully restored, login on the following command:
-         ```bash
+      ```bash
         mysql -uadmin  -h <YOUR_DB_INSTANCE_ENDPOINT>  -p
-       
-       ```
+      ```
   - Enter your password
   - from mysql console type use **sbtphapp_db;** then  type **show tables;**
   - If you can see these tables like the figure below, restoration is successful.
