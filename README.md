@@ -2,7 +2,7 @@
 
 This branch represents the next step in our DevOps journey, where we continue to enhance our knowledge and skills. Our focus is on introducing additional AWS services to further our goals, and in this branch, we've used four different techniques to build the project:
 
-1. **AWS Console**: We've leveraged the AWS Management Console for manual setup and configuration. You can find a tutorial for using the AWS Console [here](link-to-tutorial-for-AWS-Console).
+1. **AWS Console**: We've leveraged the AWS Management Console for manual setup and configuration. You can find a tutorial for using the AWS Console [here](aws_console/README.md).
 
 2. **AWS CLI**: Automation was achieved through AWS Command Line Interface (CLI) commands. Learn how to use the AWS CLI [here](NOT YET FINISHED).
 
