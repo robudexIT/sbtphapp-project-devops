@@ -270,23 +270,6 @@ Resources:
         - Key: Name 
           Value:  DBSubnetGroupRegion2
       
-  # BackendSGToDatabaseSg:
-  # BackendSGToDatabaseSg:
-  #   Type: AWS::EC2::SecurityGroupIngress
-  #   Properties:
-  #     Description: Allowed all Traffic from BackendSg to DatabaseSg
-  #     SourceSecurityGroupId: !Ref BackendSg
-  #     GroupId: !Ref DatabaseSg
-  #     IpProtocol: -1 
-
-  # FrontendSgToBackendSg:
-  #   Type: AWS::EC2::SecurityGroupIngress
-  #   Properties:
-  #     Description: Allowed All Traffic From FrontendSg to BackendSg
-  #     SourceSecurityGroupId: !Ref FrontendSg 
-  #     GroupId: !Ref BackendSg 
-  #     IpProtocol: -1 
-
   FrontendSgToItself:
     Type: AWS::EC2::SecurityGroupIngress
     Condition:  Region1CreateResources
@@ -350,7 +333,7 @@ Resources:
           FromPort: 22
           IpProtocol: tcp  
           ToPort: 22 
-        - SourceSecurityGroupId: !Ref BackendELBSg
+        - CidrIp: 0.0.0.0/0
           FromPort: 80
           IpProtocol: tcp  
           ToPort: 80
@@ -369,7 +352,7 @@ Resources:
           FromPort: 22
           IpProtocol: tcp  
           ToPort: 22 
-        - SourceSecurityGroupId: !Ref FrontendELBSg
+        - CidrIp: 0.0.0.0/0
           FromPort: 80
           IpProtocol: tcp  
           ToPort: 80
@@ -403,15 +386,17 @@ Resources:
       GroupDescription: "Allow FrontendELB to ACCESS port 80"
       VpcId: !Ref SBTPHAPPVPC
       SecurityGroupIngress: 
-        - SourceSecurityGroupId: !Ref FrontendSg
+        - CidrIp: 0.0.0.0/0
           FromPort: 80
           IpProtocol: tcp  
           ToPort: 80
+        - CidrIp: 0.0.0.0/0
+          FromPort: 443
+          IpProtocol: tcp  
+          ToPort: 443  
       Tags:
         - Key: Name 
           Value: BackendELBSg
-
-
 
   
 Outputs:
