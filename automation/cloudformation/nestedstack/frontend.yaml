@@ -1,5 +1,9 @@
-
 Parameters:
+  VPCID: 
+    Type: AWS::EC2::VPC::Id
+    ConstraintDescription: must be valid VPC-id.
+    Description: Select VPC ID
+
   InstanceType:
     AllowedValues:
       - t2.micro
@@ -14,18 +18,30 @@ Parameters:
     Description: Name of an existing Keypair to enable SSH access to the Instance
     Type: AWS::EC2::KeyPair::KeyName
   
-  FrontendSubnetId:
+  FrontendPubSub01:
     Type: AWS::EC2::Subnet::Id
     Description: Subnet of The Frontend Server
 
-  FrontendSecurityGroupID:
+  FrontendPubSub02:
+    Type: AWS::EC2::Subnet::Id
+    Description: Subnet of The Frontend Server  
+
+  FrontendSg:
     Type: AWS::EC2::SecurityGroup::Id 
     Description: Security Gruop of Frontend Instance   
 
-  InstanceProfileRole:
-    Description: Role use by the ec2 instance in your behalf
-    Type: String
+  FrontendELBSg:  
+    Type: AWS::EC2::SecurityGroup::Id 
+    Description: Security Gruop of Frontend Instance   
 
+  BackendALBDNSName:
+    Type: String 
+    Description: DNSName of BackendALB  
+  
+ 
+  CertificateArn:
+    Type: String
+    Default: arn:aws:acm:us-east-1:427875724091:certificate/281e0766-5de3-4d4d-90bf-33b3144b4703
 
 Mappings:
   AWSInstanceType2Arch:
@@ -40,156 +56,130 @@ Mappings:
        HVM64: ami-0430580de6244e02e
 
 
-Resources:    
-  Frontend: 
-    Type: AWS::EC2::Instance
-    CreationPolicy:
-       ResourceSignal:
-         Timeout: PT15M
-    Metadata:
-      AWS::CloudFormation::Init:
-        configSets: 
-          sbtphapp_frontend_install:
-            - install_apache2_and_other_dependencies
-            - clone_sbtphapp_project_devops
-            - configure_apache2
-        
-        install_apache2_and_other_dependencies:
-          packages:
-            apt: 
-              apache2: []
-              php: []
-              php-mysql: []
-              mysql-client: []
-              git: []
-              awscli: []
-          services:
-            sysvinit:
-               apache2: 
-                 enabled: "true" 
-                 ensureRunning: "true" 
-          # commands:
-          #   01_enable_mariadb:
-          #     command: sudo systemctl enable mariadb
-          #   02_start_mariadb:
-          #     command: sudo systemctl start mariadb
-          
-        clone_sbtphapp_project_devops:
-          commands:
-            01_clone_repo:
-              command: cd /tmp && git clone -b  lift-and-shift https://github.com/robudexIT/sbtphapp-project-devops.git
+Resources:
+  FrontendLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: FrontendLaunchTemplate
+      VersionDescription: Version 1
+      LaunchTemplateData:
+        ImageId: !FindInMap [AWSRegionArch2AMI, !Ref 'AWS::Region', !FindInMap [AWSInstanceType2Arch, !Ref InstanceType, Arch]]
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupIds: 
+          - !Ref FrontendSg
+        # DB_HOST_IP=$(aws --region ${AWS::Region}  rds describe-db-instances --db-instance-identifier ${DBInstanceID} --query "DBInstances[0].Endpoint.Address")   
+        UserData: 
+           Fn::Base64: !Sub |
+              #!/bin/bash
+              sudo apt update -y
 
-        configure_apache2:
-          files:
-            /home/ubuntu/update_api_ip.sh:
-              content: !Sub |
-                #!/bin/bash
-                REGION="AWS_REGION_HERE"
-                  #get the public ip address of the Instance Name=Backend
-                  AWS_API_IP=$(aws --region $REGION ec2 describe-instances --filters "Name=tag:Server,Values=Backend" --query 'Reservations[0].Instances[0].PublicIpAddress' | sed 's/"//g') 
+              sudo apt install apache2  php php-mysql mysql-client git -y
+              sudo apt install awscli -y
+              sudo systemctl enable apache2
+              sudo systemctl stop apache2
 
-                  #exit if AWS_API_IP is equal to null
-                  if [ "$AWS_API_IP" == "null" ]; then
-                    exit 0
-                  fi
-
-                  CHECK_API_IP=$(grep -r -E -o $AWS_API_IP  js/app* | wc -l)
-
-                  if [ "$CHECK_API_IP" -ne 0 ]; then
-                    echo "API IP is not change no need to update"
-                    exit 0
-                    
-                  else {
-                    echo "API IP was change update javascript file"
-                    #find and replace  if app
-                    find /var/www/html/sbtph_app/js/app* -type f -exec sed -E -i "s/\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/$AWS_API_IP/g" {} +
-                    #back the ownership to  ubuntu user and group
-                    sudo chown -R ubuntu:ubuntu /var/www/html/sbtph_app/js/app*
-                    }
-                  fi
-              mode: "777"
-              user: "ubuntu"
-              group: "ubuntu"
-              
-            /tmp/frontend.sh:
-              content: !Sub |
-                #!/bin/bash -xe
-                #get the public ip address of the Instance Name=Backend
-                AWS_API_IP=$(aws --region ${AWS::Region} ec2 describe-instances --filters "Name=tag:Server,Values=Backend" --query 'Reservations[0].Instances[0].PublicIpAddress' | sed 's/"//g') 
-                
-
-                cp -r /tmp/sbtphapp-project-devops/frontend/sbtph_app/ /var/www/html/
-                cp /tmp/sbtphapp-project-devops/frontend/startup-service/update_api_ip.service /etc/systemd/system/
-                cp /tmp/sbtphapp-project-devops/frontend/startup-service/update_api_ip.sh /home/ubuntu/
-                cp /tmp/sbtphapp-project-devops/frontend/cron/update_api_ip.crontab /tmp/
-
-                if [ "$AWS_API_IP" -ne "null" ]; then
-                    find /var/www/html/sbtph_app/js/app* -type f -exec sed -E -i "s/\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/$AWS_API_IP/g" {} +
-                fi
-                sudo chown -R ubuntu:ubuntu /var/www/html
-                
-                #this code will deal on SPA application 
-                mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf-backup
-                cp  /tmp/sbtphapp-project-devops/frontend/conf/apache2/000-default.conf /etc/apache2/sites-available/
-                sudo a2enmod rewrite
-                sudo systemctl restart apache2
+              cd /tmp && git clone -b  lift-and-shift https://github.com/robudexIT/sbtphapp-project-devops.git
+              #get the public ip address of the BackendALBDNSName
+              AWS_API_IP=${BackendALBDNSName}
 
 
-                sudo sed -i "s/AWS_REGION_HERE/${AWS::Region}/" /home/ubuntu/update_api_ip.sh
-               
-
-                sudo systemctl daemon-reload
-                sudo systemctl enable update_api_ip.service
-                sudo systemctl start update_api_ip.service
-
-                # Install the updated crontab
-                crontab /tmp/update_api_ip.crontab
-
-                # Remove the temporary file
-                rm /tmp/update_api_ip.crontab
+              cp -r /tmp/sbtphapp-project-devops/frontend/sbtph_app/ /var/www/html/
 
 
-                cd ..
-                sudo rm -rf  /tmp/sbtphapp-project-devops
+              find /var/www/html/sbtph_app/js/app* -type f -exec sed -E -i "s/\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/$AWS_API_IP/g" {} +
 
-              group: root 
-              mode: '777'
-              owner: root 
+              sudo chown -R ubuntu:ubuntu /var/www/html
 
-          commands: 
-            01_run_frontend_shell_script:
-              command: /tmp/frontend.sh            
-                
-       
-    Properties: 
-      ImageId: !FindInMap [AWSRegionArch2AMI, !Ref 'AWS::Region', !FindInMap [AWSInstanceType2Arch, !Ref InstanceType, Arch]]
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref KeyName
-      IamInstanceProfile: !Ref InstanceProfileRole
+              #this code will deal on SPA application 
+              mv /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/000-default.conf-backup
+              cp  /tmp/sbtphapp-project-devops/frontend/conf/apache2/000-default.conf /etc/apache2/sites-available/
+              sudo a2enmod rewrite
+              sudo systemctl restart apache2
+
+              sudo rm -rf  /tmp/sbtphapp-project-devops 
+
+
+  FrontendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VPCID
+      HealthCheckProtocol: HTTP 
+      HealthCheckPath: /
+      IpAddressType: ipv4 
+      Name: FrontendTargetGroup
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
       Tags: 
-        - Key: Server 
-          Value: Frontend
         - Key: Name 
-          Value: Frontend
-      SubnetId: !Ref FrontendSubnetId
-      SecurityGroupIds: 
-        - !Ref FrontendSecurityGroupID
-      UserData: 
-        Fn::Base64: !Sub |
-          #!/bin/bash -xe
-          apt update  -y 
-          sudo apt-get -y install python3-pip
-          mkdir -p /opt/aws/
-          sudo pip3 install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-py3-latest.tar.gz
-          sudo ln -s /usr/local/init/ubuntu/cfn-hup /etc/init.d/cfn-hup
-          /usr/local/bin/cfn-init -v --stack ${AWS::StackId} --resource Frontend --configsets sbtphapp_frontend_install --region ${AWS::Region}
-          /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource Frontend --region ${AWS::Region}
+          Value: FrontendTargetGroup
 
+  FrontendALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      IpAddressType: ipv4
+      Name: FrontendALB
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !Ref FrontendELBSg
 
+      Subnets: 
+        - !Ref FrontendPubSub01 
+        - !Ref FrontendPubSub02 
+      Tags: 
+        - Key: Name 
+          Value:  FrontendALB 
+      Type: application
+
+  FrontendElasticLoadBalancingListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Certificates: 
+        - CertificateArn: !Ref CertificateArn
+      DefaultActions: 
+         - Type: forward 
+           TargetGroupArn: !Ref FrontendTargetGroup
         
 
+      LoadBalancerArn: !Ref FrontendALB
+      Port: '443'
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-TLS13-1-2-2021-06
+  
+  FrontendASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn: FrontendALB
+    Properties: 
+      AutoScalingGroupName:  FrontendASG
+      LaunchTemplate: 
+        LaunchTemplateId: !Ref FrontendLaunchTemplate
+        Version: !GetAtt FrontendLaunchTemplate.LatestVersionNumber
+      # LoadBalancerNames: 
+      #   - !Ref BackendALB
+      TargetGroupARNs: 
+       - !Ref  FrontendTargetGroup
+      HealthCheckType: ELB
+      MaxSize: '1'
+      MinSize: '1'
+      DesiredCapacity: '1'
+      VPCZoneIdentifier:
+        - !Ref FrontendPubSub01
+        - !Ref FrontendPubSub02
+      Tags: 
+        - Key: Name 
+          Value: FrontendASG
+          PropagateAtLaunch: true
 
-      
+Outputs:
+  FrontendALBDNSName:
+    Description: DNSName of FrontendALB 
+    Value: !GetAtt FrontendALB.DNSName
+
+
+
+
+              
 
 
 

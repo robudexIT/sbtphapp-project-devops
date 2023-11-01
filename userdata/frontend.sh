@@ -8,9 +8,8 @@ systemctl start apache2
 
 
 #get the public ip address of the Instance Name=Backend
-AWS_API_IP="REPLACE WITH BACKENDALB ENDPOINT HERE"
+AWS_API_IP="backendALB-47426311.us-east-1.elb.amazonaws.com"
 cd /tmp  && git clone -b  lift-and-shift  https://github.com/robudexIT/sbtphapp-project-devops.git
-
 
 
 cp -r /tmp/sbtphapp-project-devops/frontend/sbtph_app/ /var/www/html/
@@ -26,12 +25,8 @@ cp frontend/conf/apache2/000-default.conf /etc/apache2/sites-available/
 sudo a2enmod rewrite
 sudo systemctl restart apache2
 
-
-
 sudo systemctl enable update_api_ip.service
 sudo systemctl start update_api_ip.service
-
-
 
 cd ..
 sudo rm -rf  /tmp/sbtphapp-project-devops

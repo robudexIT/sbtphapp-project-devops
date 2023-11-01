@@ -407,21 +407,60 @@ Outputs:
   BackendSg: 
     Condition:  Region1CreateResources
     Value: !Ref BackendSg
+
+  BackendELBSg: 
+    Condition:  Region1CreateResources
+    Value: !Ref BackendELBSg    
+  
+  FrontendELBSg: 
+    Condition:  Region1CreateResources
+    Value: !Ref FrontendELBSg  
+  
   FrontendSg:
     Condition:  Region1CreateResources 
     Value: !Ref FrontendSg
+
   DBSubnetGroupRegion1:
      Condition:  Region1CreateResources
      Value: !Ref DBSubnetGroupRegion1
   DBSubnetGroupRegion2:
      Condition:  Region2CreateResources   
      Value: !Ref DBSubnetGroupRegion2
-  # BackendPubSub: 
-  #   Value: !Ref BackendPubSub 
-  # FrontendPubSub: 
-  #   Value: !Ref FrontendPubSub 
-  # DatabasePrivSub:
-  #   Value: !Ref DatabasePrivSub
+
+  BackendPubSub01:
+    Condition:  Region1CreateResources
+    Value: !Ref BackendPubSub01 
+
+  BackendPubSub02:
+    Condition:  Region1CreateResources
+    Value: !Ref BackendPubSub02
+
+  FrontendPubSub01: 
+    Condition:  Region1CreateResources  
+    Value: !Ref FrontendPubSub01
+  
+  FrontendPubSub02: 
+    Condition:  Region1CreateResources  
+    Value: !Ref FrontendPubSub02
+
+  DatabasePrivSub01:
+    Condition:  Region1CreateResources
+    Value: !Ref DatabasePrivSub01
+
+  DatabasePrivSub02:
+    Condition:  Region1CreateResources  
+    Value: !Ref DatabasePrivSub02    
+ 
+  DatabasePrivSubReplica01:
+    Condition:  Region2CreateResources  
+    Value: !Ref DatabasePrivSubReplica01    
+  
+  DatabasePrivSubReplica02:
+    Condition:  Region2CreateResources  
+    Value: !Ref DatabasePrivSubReplica02   
+
+
+  
   
 
 

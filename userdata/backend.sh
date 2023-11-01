@@ -11,7 +11,7 @@ cd /tmp/sbtphapp-project-devops
 
 DB_HOST_IP=primarydbinstance.ctgivagolcpv.us-east-1.rds.amazonaws.com
 SBTPHAPP_USER=admin
-SBTPHAPP_PWD=iospK9xzsIHTzW3ejJzx
+SBTPHAPP_PWD=supersecretsecret2023
 cp -r /tmp/sbtphapp-project-devops/backend/sbtph_api/ /var/www/html/
 
 sudo sed -i "s/[0-9]\+\(\.[0-9]\+\)\{3\}/$DB_HOST_IP/" /var/www/html/sbtph_api/config/database.php

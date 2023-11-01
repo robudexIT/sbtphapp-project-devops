@@ -29,6 +29,68 @@ Parameters:
     Description: Name of an existing Keypair to enable SSH access to the Instance
     Type: AWS::EC2::KeyPair::KeyName
 
+  DBInstanceID:
+      Default: sbtphappdbinstances
+      Description: My database instance
+      Type: String
+      MinLength: '1'
+      MaxLength: '63'
+      AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+      ConstraintDescription: 
+        Must begin with a letter and must not end with a hyphen or contain two
+        consecutive hyphens.   
+
+  DBName:
+      Default: sbtphappdb
+      Description: SBTPHAPP Database Name
+      Type: String
+      MinLength: '1'
+      MaxLength: '64'
+      AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+      ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
+  DBInstanceClass:
+      Default: db.t3.micro
+      Description: DB instance class
+      Type: String
+      ConstraintDescription: Must select a valid DB instance type.
+  DBAllocatedStorage:
+      Default: '20'
+      Description: The size of the database (GiB)
+      Type: Number
+      MinValue: '20'
+      MaxValue: '65536'
+      ConstraintDescription: must be between 20 and 65536 GiB.
+  DBUsername:
+      Description: Username for MySQL database access
+      Type: String
+      MinLength: '1'
+      MaxLength: '16'
+      AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+      ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBPassword:
+      NoEcho: 'true'
+      Description: Password MySQL database access
+      Type: String
+      MinLength: '8'
+      MaxLength: '41'
+      AllowedPattern: '[a-zA-Z0-9]*'
+      ConstraintDescription: must contain only alphanumeric characters.
+  DBSubnetGroupName:
+      Type: String
+
+
+  CertificateArn:
+    Type: String
+    Default: arn:aws:acm:us-east-1:427875724091:certificate/281e0766-5de3-4d4d-90bf-33b3144b4703
+
+
+Conditions:
+  Region1CreateResources: !Equals 
+    - !Ref AWS::Region   
+    - us-east-1
+  Region2CreateResources: !Equals 
+    - !Ref AWS::Region   
+    - us-east-2
 
 
 AWSTemplateFormatVersion: '2010-09-09'
@@ -43,68 +105,67 @@ Resources:
         VpcName: !Ref VpcName
         SSHLocation: !Ref SSHLocation
 
-  InstanceRoleStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn: VPCStack
-    Properties:
-     # replace the TemplateURL with your own url
-      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/instancerole.json
-      TimeoutInMinutes: '60'
 
 
-  DatabaseStack:
+  DatabasePrimaryStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: InstanceRoleStack
+    Condition:  Region1CreateResources
     Properties:
        # replace the TemplateURL with your own url
-      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/database.yaml
+      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/database-primary.yaml
       TimeoutInMinutes: '60'
       Parameters:
-        DbSubnetId: !GetAtt VPCStack.Outputs.DatabasePrivSub
-        DgSecurityGroupID: !GetAtt VPCStack.Outputs.DatabaseSg
-        KeyName: !Ref KeyName
-        InstanceType: !Ref InstanceType
-
-  LockdownDBStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn: DatabaseStack
-    DeletionPolicy: Retain
-    Properties:
-       # replace the TemplateURL with your own url
-      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/lockdowndb.yaml
-      TimeoutInMinutes: '60'
-      Parameters:
-        VPCID: !GetAtt VPCStack.Outputs.VPCID
-        DBSUBNETID: !GetAtt VPCStack.Outputs.DatabasePrivSub
-        # AssociationId: !GetAtt VPCStack.Outputs.AssociationId
+        DBSubnetGroupName: !GetAtt VPCStack.Outputs.DBSubnetGroupRegion1
+        DatabaseSg: !GetAtt VPCStack.Outputs.DatabaseSg
+        DBInstanceClass: !Ref DBInstanceClass
+        DBInstanceID: !Ref DBInstanceID
+        DBName: !Ref DBName
+        DBAllocatedStorage: !Ref DBAllocatedStorage
+        DBUsername: !Ref DBUsername
+        DBPassword:  !Ref DBPassword
+     
 
   BackendStack:
     Type: AWS::CloudFormation::Stack
-    DependsOn: DatabaseStack
+    Condition:  Region1CreateResources
+    DependsOn: DatabasePrimaryStack
     Properties:
       # replace the TemplateURL with your own url
       TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/backend.yaml
       TimeoutInMinutes: '60'
       Parameters:
-        BackendSubnetId: !GetAtt VPCStack.Outputs.BackendPubSub
-        BackendSecurityGroupID: !GetAtt VPCStack.Outputs.BackendSg
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        BackendPubSub01: !GetAtt VPCStack.Outputs.BackendPubSub01
+        BackendPubSub02: !GetAtt VPCStack.Outputs.BackendPubSub02
+        BackendSg: !GetAtt VPCStack.Outputs.BackendSg
+        BackendELBSg: !GetAtt VPCStack.Outputs.BackendELBSg
         KeyName: !Ref KeyName
         InstanceType: !Ref InstanceType
-        InstanceProfileRole: !GetAtt InstanceRoleStack.Outputs.sbtphappRoleInstanceProfile
+        DBUsername: !Ref DBUsername
+        DBPassword:  !Ref DBPassword
+        DBHostAddress: !GetAtt DatabasePrimaryStack.Outputs.PrimaryRdsDbInstanceAddress
+        CertificateArn: arn:aws:acm:us-east-1:427875724091:certificate/281e0766-5de3-4d4d-90bf-33b3144b4703
+
 
   FrontendStack:
     Type: AWS::CloudFormation::Stack
+    Condition:  Region1CreateResources
     DependsOn: BackendStack
     Properties:
       # replace the TemplateURL with your own url
       TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/frontend.yaml
       TimeoutInMinutes: '60'
       Parameters:
-        FrontendSubnetId: !GetAtt VPCStack.Outputs.FrontendPubSub
-        FrontendSecurityGroupID: !GetAtt VPCStack.Outputs.FrontendSg
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        FrontendPubSub01: !GetAtt VPCStack.Outputs.FrontendPubSub01
+        FrontendPubSub02: !GetAtt VPCStack.Outputs.FrontendPubSub02
+        FrontendSg: !GetAtt VPCStack.Outputs.FrontendSg
+        FrontendELBSg: !GetAtt VPCStack.Outputs.FrontendELBSg
         KeyName: !Ref KeyName
         InstanceType: !Ref InstanceType
-        InstanceProfileRole: !GetAtt InstanceRoleStack.Outputs.sbtphappRoleInstanceProfile
+        BackendALBDNSName: !GetAtt BackendStack.Outputs.BackendALBDNSName
+        CertificateArn: arn:aws:acm:us-east-1:427875724091:certificate/281e0766-5de3-4d4d-90bf-33b3144b4703
+
 Outputs:
     MainStackName: 
       Value: !Ref AWS::StackName
@@ -114,9 +175,13 @@ Outputs:
        Value: !Ref AWS::Region
     VPCStack:
       Value: !Ref VPCStack
-    # DatabaseStack:
-    #   Value: !Ref DatabaseStack
-    
+    BackendALBDNSName:
+      Condition:  Region1CreateResources
+      Value: !GetAtt BackendStack.Outputs.BackendALBDNSName
+
+    FrontendALBDNSName:
+       Condition:  Region1CreateResources
+       Value: !GetAtt FrontendStack.Outputs.FrontendALBDNSName
 
          
 

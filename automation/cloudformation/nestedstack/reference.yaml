@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Restore Database from GitHub
+
+Resources:
+  # Create an RDS DB instance
+  MyDBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      DBInstanceClass: db.t2.micro
+      Engine: mysql
+      MasterUsername: masteruser
+      MasterUserPassword: masterpassword
+      DBName: mydatabase
+      MultiAZ: false
+      PubliclyAccessible: false
+
+  # Custom resource for downloading data from GitHub
+  GitHubDownloadFunction:
+    Type: Custom::GitHubDownload
+    Properties:
+      ServiceToken: arn:aws:lambda:us-east-1:123456789012:function/GitHubDownloadFunction
+      GitHubRepoURL: https://github.com/yourusername/yourrepository/data.sql
+      GitHubToken: yourgithubtoken # If your repository is private
+      DatabaseEndpoint: !GetAtt MyDBInstance.Endpoint.Address
+      DatabasePort: 3306
+      DatabaseUsername: masteruser
+      DatabasePassword: masterpassword
+      DatabaseName: mydatabase
+
+  # Lambda function to restore the database
+  RestoreDatabaseLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: RestoreDatabaseFunction
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: your-lambda-deployment-bucket
+        S3Key: lambda.zip
+      Runtime: python3.8
+      Timeout: 60
+      Environment:
+        Variables:
+          RDS_HOST: !GetAtt MyDBInstance.Endpoint.Address
+          RDS_USER: masteruser
+          RDS_PASSWORD: masterpassword
+          RDS_DB_NAME: mydatabase
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: RestoreDatabaseLambdaRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaBasicExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: 'arn:aws:logs:*:*:*'
+
+Outputs:
+  RestoreDatabaseLambdaFunctionArn:
+    Description: ARN of the Restore Database Lambda Function
+    Value: !GetAtt RestoreDatabaseLambdaFunction.Arn

@@ -197,7 +197,8 @@
                                         "ec2:DescribeTransitGatewayVpcAttachments",
                                         "ec2:GetTransitGatewayPolicyTableAssociations",
                                         "ec2:GetTransitGatewayMulticastDomainAssociations",
-                                        "ec2:DescribeConversionTasks"
+                                        "ec2:DescribeConversionTasks",
+                                        "rds:*"
                                     ],
                                     "Resource": "*"
                                 }

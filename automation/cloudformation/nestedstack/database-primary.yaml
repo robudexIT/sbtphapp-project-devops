@@ -47,8 +47,8 @@ Parameters:
     DBSubnetGroupName:
       Type: String
 
-    VPCSecurityGroup:
-      Type: String
+    DatabaseSg:
+      Type: AWS::EC2::SecurityGroup::Id 
 
 
 Resources:
@@ -68,12 +68,26 @@ Resources:
       Port: 3306
       PubliclyAccessible: false
       VPCSecurityGroups: 
-       - !Ref VPCSecurityGroup
+       - !Ref DatabaseSg
 
 Outputs:
+
   RDSInstanceSourceDBIdentifier: 
     Description: Source DB Instance Identifier
-    Value: !Ref PRIMARYRDS     
+    Value: !GetAtt PRIMARYRDS.DbiResourceId   
+      
+  PrimaryRdsDbInstanceArn:
+    Description: Primary RDS Instance Arn 
+    Value: !GetAtt PRIMARYRDS.DBInstanceArn
+  
+  PrimaryRdsDbInstanceAddress:
+    Description: Primary RDS Instance Address 
+    Value: !GetAtt  PRIMARYRDS.Endpoint.Address
+  
+
+
+  
+    
 
 
 
