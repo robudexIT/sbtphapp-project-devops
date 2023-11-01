@@ -110,14 +110,15 @@ Include a brief description and a diagram of the architecture built using the AW
 
    - For RDS instance comprehensive output: 
 
-    ```bash
-        aws rds describe-db-instances --db-instance-identifier primarydbinstance --region us-east-1
-    ```
+        ```bash
+            aws rds describe-db-instances --db-instance-identifier primarydbinstance --region us-east-1
+        ```
    - The command below verifies the status of the RDS instance with the identifier **'db-instance-identifier'** set to **'primarydbinstance.'** Please wait until the 'DBInstanceStatus' changes to **'available'**.:
 
-    ```bash
-       aws rds describe-db-instances --db-instance-identifier primarydbinstance --query "DBInstances[0].DBInstanceStatus" --region us-east-1     
-    ```
+        ```bash
+        aws rds describe-db-instances --db-instance-identifier primarydbinstance --query "DBInstances[0].DBInstanceStatus" --region us-east-1     
+
+        ```
     - Run this command and copy  the **Endpoint.Address** and **DBInstanceArn** to your notepad:
 
      ```bash
@@ -174,7 +175,7 @@ Include a brief description and a diagram of the architecture built using the AW
      ```bash
         ssh -i <YOURKEYPAIR.pem>  ubuntu@<INSTANCE-PublicIpAddress>
      ```
-    - Once connected, type this command to restore the database from your working directory to the rds database instance. (**change with you RDS Endpoint address and rdsuser (which you set in rds creation)**) and enter your rds instance master-user-password.  
+   - Once connected, type this command to restore the database from your working directory to the rds database instance. (**change with you RDS Endpoint address and rdsuser (which you set in rds creation)**) and enter your rds instance master-user-password.  
      
      ```bash
        cd /tmp/sbtphapp-project-devops/database
@@ -182,10 +183,11 @@ Include a brief description and a diagram of the architecture built using the AW
        mysql -uadmin sbtphapp_db -h <YOUR_DB_INSTANCE_Endpoint.Address> < sbtphapp_db.sql -p
      ```
 
-    - Terminate the temporary instance (change it your instance-id)
-     ```bash
-        aws ec2 terminate-instances --instance-ids <instance-id>
-     ```
+   - Terminate the temporary instance (change it your instance-id)
+   
+        ```bash
+            aws ec2 terminate-instances --instance-ids <instance-id>
+        ```
 ### 4. Request for certificate
  - Change with your valid domain name:
 
@@ -233,9 +235,9 @@ Include a brief description and a diagram of the architecture built using the AW
 
    - Encode 'backend.sh' into base64 encoding. Copy the base64 output and paste it into your notes.
 
-    ```bash
-        base64 -w 0 < userdata/backend.sh     
-    ``` 
+        ```bash
+            base64 -w 0 < userdata/backend.sh     
+        ``` 
 
    - Run this command to create the 'backend_launch_template,' ensuring that you paste the base64 output into the '**UserData'** field. Refer to your notes to fill in the missing values for the required fields. 
 
@@ -377,9 +379,9 @@ Include a brief description and a diagram of the architecture built using the AW
 
    - Open the 'userdata/frontend.sh' file, find the code section below, update it with your values, and remember to save the file.
 
-   ```bash 
-        AWS_API_IP="<backendALB-DNS-HERE>"
-   ```
+    ```bash 
+            AWS_API_IP="<backendALB-DNS-HERE>"
+    ```
 
    - Encode 'frontend.sh' into base64 encoding. Copy the base64 output and paste it into your notes.
 
@@ -451,17 +453,17 @@ Include a brief description and a diagram of the architecture built using the AW
 
    - Refer to your notes and provide the values for the fields with missing information.
 
-    ```bash
-        aws elbv2 create-listener \
-        --load-balancer-arn <YOUR-FRONTENDALB-ARN-HERE> \
-        --protocol HTTPS \
-        --port 443 \
-        --ssl-policy ELBSecurityPolicy-TLS13-1-2-2021-06 \
-        --certificates CertificateArn=<YOUR-CERTIIFACATE-HERE> \
-        --default-actions Type=forward,TargetGroupArn= <YOUR-FRONTEND-TARGETGROUP-ARN-HERE> \
-        --tags Key=Name,Value=443Listener \
-        --region us-east-1
-    ``` 
+        ```bash
+            aws elbv2 create-listener \
+            --load-balancer-arn <YOUR-FRONTENDALB-ARN-HERE> \
+            --protocol HTTPS \
+            --port 443 \
+            --ssl-policy ELBSecurityPolicy-TLS13-1-2-2021-06 \
+            --certificates CertificateArn=<YOUR-CERTIIFACATE-HERE> \
+            --default-actions Type=forward,TargetGroupArn= <YOUR-FRONTEND-TARGETGROUP-ARN-HERE> \
+            --tags Key=Name,Value=443Listener \
+            --region us-east-1
+        ``` 
 
 ### 14. Create frontend ASG
 
@@ -551,27 +553,27 @@ Include a brief description and a diagram of the architecture built using the AW
    - From your notes get the  frontendALB and backendALB **DNSName** values. Open your goddady account. Under Your domainname create 2 new CNAME records similar to this.
    The Name of the Backend and Frontend records depends upon you. (in my case I name it sbtphapi for backend and sbtphapp for frontend.)
   
-    ```bash
-        Backend:
-            Type: CNAME
-            Name: sbtphapi
-            Value: <backendALB-DNS-HERE>
+        ```bash
+            Backend:
+                Type: CNAME
+                Name: sbtphapi
+                Value: <backendALB-DNS-HERE>
 
-        Frontend:
-            Type: CNAME
-            Name: sbtphapp
-            Value: <frontendALB-DNS-HERE>
-        
-    ```
+            Frontend:
+                Type: CNAME
+                Name: sbtphapp
+                Value: <frontendALB-DNS-HERE>
+            
+        ```
 
-   - For backend, open the browser and copy the paste this url https://<BACKEND-NAME-HERE>.<YOUR-DOMAIN-HERE>/sbtph_api/api/active.php (eg https://sbtphapi.robudexdevops.com/sbtph_api/api/active.php) The ouput should similar to this
+   - For backend, open the browser and copy the paste this url https://<BACKEND-NAME-HERE>.<YOUR-DOMAIN-HERE>/sbtph_api/api/active.php (eg https://sbtphapi.robudexdevops.com/sbtph_api/api/active.php) The ouput should similar to this <br \> <br \>
 
      
 
   ![secure api backend](../screenshots/secure_api.png)
   
 
-   - For Frontend, open the browser and copy the paste this url https://<FRONTEND-NAME-HERE>.<YOUR-DOMAIN-HERE>/sbtph_app/login. (eg https://sbtphapp.robudexdevops.com/sbtph_app/login) The ouput should similar to this
+   - For Frontend, open the browser and copy the paste this url https://<FRONTEND-NAME-HERE>.<YOUR-DOMAIN-HERE>/sbtph_app/login. (eg https://sbtphapp.robudexdevops.com/sbtph_app/login) The ouput should similar to this <br \> <br \>
 
 
   ![secure app ](../screenshots/secure_app.png)
