@@ -36,9 +36,9 @@ Include a brief description and a diagram of the architecture built using the AW
    - Create a VPC using AWS CloudFormation in the us-east-1 region:
 
    ```bash
-    aws cloudformation create-stack --stack-name primary-vpc-stack \
-    --template-body file://automation/cloudformation/nestedstack/vpc.yaml \
-    --parameters ParameterKey=VpcName,ParameterValue=primaryVpc ParameterKey=SSHLocation,ParameterValue=0.0.0.0/0 --region us-east-1
+        aws cloudformation create-stack --stack-name primary-vpc-stack \
+        --template-body file://automation/cloudformation/nestedstack/vpc.yaml \
+        --parameters ParameterKey=VpcName,ParameterValue=primaryVpc ParameterKey=SSHLocation,ParameterValue=0.0.0.0/0 --region us-east-1
 
      ```
    - Use the command below to check the stack's comprehensive status where --stack-name=primary-vpc-stack:
@@ -49,21 +49,22 @@ Include a brief description and a diagram of the architecture built using the AW
    - Wait until the "StackStatus" becomes "CREATE_COMPLETE". Alternatively, use the command below to filter the output message to "StackStatus" only:
    
      ```bash
-    aws cloudformation describe-stacks --stack-name primary-vpc-stack --query "Stacks[0].StackStatus" --region us-east-1
-   
-   ```
+        aws cloudformation describe-stacks --stack-name primary-vpc-stack --query "Stacks[0].StackStatus" --region us-east-1
+ 
+     ```
    - Run the command below and copy the output in your notepad notes. These values are needed in the succeeding parts of the tutorial:
   
    ```bash
      aws cloudformation describe-stacks --stack-name primary-vpc-stack --query "Stacks[0].Outputs" --region us-east-1
+     
    ```
 
    -  Creating VPC using  AWS Cloudformation in us-east-2 region
 
    ```bash
-      aws cloudformation create-stack --stack-name replica-vpc-stack \
-    --template-body file://automation/cloudformation/nestedstack/vpc.yaml \
-    --parameters ParameterKey=VpcName,ParameterValue=replicaVpc ParameterKey=SSHLocation,ParameterValue=0.0.0.0/0 --region us-east-2
+        aws cloudformation create-stack --stack-name replica-vpc-stack \
+        --template-body file://automation/cloudformation/nestedstack/vpc.yaml \
+        --parameters ParameterKey=VpcName,ParameterValue=replicaVpc ParameterKey=SSHLocation,ParameterValue=0.0.0.0/0 --region us-east-2
 
    ```
     
@@ -72,17 +73,17 @@ Include a brief description and a diagram of the architecture built using the AW
     ```bash
         aws cloudformation describe-stacks --stack-name replica-vpc-stack --region us-east-2
     ```  
-   -Wait until the "StackStatus" is "CREATE_COMPLETE". Alternatively, use the command below to filter the output message to "StackStatus" only:
+  - Wait until the "StackStatus" is "CREATE_COMPLETE". Alternatively, use the command below to filter the output message to "StackStatus" only:
 
      ```bash
-    aws cloudformation describe-stacks --stack-name replica-vpc-stack --query "Stacks[0].StackStatus" --region us-east-2
-   
-   ```
+      aws cloudformation describe-stacks --stack-name replica-vpc-stack --query "Stacks[0].StackStatus" --region us-east-2
+    
+     ```
    - Run the command below and copy the output in your notepad notes. These values are needed in the succeeding parts of the tutorial:
    
    ```bash
-     aws cloudformation describe-stacks --stack-name replica-vpc-stack --query "Stacks[0].Outputs" --region us-east-2
-   
+        aws cloudformation describe-stacks --stack-name replica-vpc-stack --query "Stacks[0].Outputs" --region us-east-2
+    
    ```
 
 ### 2. Creating primary RDS instance. (You change master-username and master-user-password here )
@@ -137,7 +138,7 @@ Include a brief description and a diagram of the architecture built using the AW
     --tags Key=Name,Value=temporaryinstance \
     --region us-east-1   
   ```
-  - Get the "PublicIpAddress" and "InstanceId" and save them in your notes.
+ - Get the "PublicIpAddress" and "InstanceId" and save them in your notes.
 
   - Check instance status (make sure to change it with your **instance-ids**):
 
@@ -188,16 +189,16 @@ Include a brief description and a diagram of the architecture built using the AW
 ### 4. Request for certificate
  - Change with your valid domain name:
 
-        ```bash
+     ```bash
             aws acm request-certificate --domain-name *.YOURVALIDDOMAINNAME --validation-method DNS
-        ```
+    ```
  - Please make sure to store the **CertificateArn** in your notes.
 
  - To describe the status of your certificate (replace 'your certificate arn' with your actual CertificateArn)
 
-        ```bash
+     ```bash
             aws acm describe-certificate --certificate-arn <YOUR CERTIFICATED ARN> 
-        ```
+    ```
 - Please locate a similar piece of information below and copy it into your notepad.
     
      ```bash
@@ -238,18 +239,18 @@ Include a brief description and a diagram of the architecture built using the AW
 
    - Run this command to create the 'backend_launch_template,' ensuring that you paste the base64 output into the '**UserData'** field. Refer to your notes to fill in the missing values for the required fields. 
 
-    ```bash
-        aws ec2 create-launch-template --launch-template-name backend-launch-template \
-        --version-description "Initial version" \
-        --region us-east-1 \
-        --launch-template-data '{
-        "UserData": <PASTE THE BASE64 OUTPUT HERE>,
-        "ImageId": "ami-0261755bbcb8c4a84",
-        "KeyName": "<YOUR-KEYPAIR-HERE>",
-        "SecurityGroupIds": ["<BackendSg-VALUE-HERE>"]
-        "InstanceType": "t2.micro"
-        }'
-    ```
+        ```bash
+            aws ec2 create-launch-template --launch-template-name backend-launch-template \
+            --version-description "Initial version" \
+            --region us-east-1 \
+            --launch-template-data '{
+            "UserData": <PASTE THE BASE64 OUTPUT HERE>,
+            "ImageId": "ami-0261755bbcb8c4a84",
+            "KeyName": "<YOUR-KEYPAIR-HERE>",
+            "SecurityGroupIds": ["<BackendSg-VALUE-HERE>"]
+            "InstanceType": "t2.micro"
+            }'
+        ```
 
 
 ### 6.Create backend target group
@@ -281,6 +282,7 @@ Include a brief description and a diagram of the architecture built using the AW
     --scheme internet-facing \
     --ip-address-type ipv4 \
     --region us-east-1   
+
   ```  
   - Run this command  save  **"LoadBalancerArn"** and **DNSName** to your notepad notes.
     
@@ -308,6 +310,7 @@ Include a brief description and a diagram of the architecture built using the AW
         --default-actions Type=forward,TargetGroupArn= <YOUR-BACKEND-TARGETGROUP-ARN-HERE> \
         --tags Key=Name,Value=443Listener \
         --region us-east-1
+
     ``` 
 
 ### 9. Create backend ASG
@@ -386,18 +389,19 @@ Include a brief description and a diagram of the architecture built using the AW
 
    - Run this command to create the 'frontend_launch_template,' ensuring that you paste the base64 output into the '**UserData'** field. Refer to your notes to fill in the missing values for the required fields. 
 
-    ```bash
-        aws ec2 create-launch-template --launch-template-name frontend-launch-template \
-        --version-description "Initial version" \
-        --region us-east-1 \
-        --launch-template-data '{
-        "UserData": <PASTE THE BASE64 OUTPUT HERE>,
-        "ImageId": "ami-0261755bbcb8c4a84",
-        "KeyName": "<YOUR-KEYPAIR-HERE>",
-        "SecurityGroupIds": ["<FrontendSg-VALUE-HERE>"]
-        "InstanceType": "t2.micro"
-        }'
-    ```
+        ```bash
+            aws ec2 create-launch-template --launch-template-name frontend-launch-template \
+            --version-description "Initial version" \
+            --region us-east-1 \
+            --launch-template-data '{
+            "UserData": <PASTE THE BASE64 OUTPUT HERE>,
+            "ImageId": "ami-0261755bbcb8c4a84",
+            "KeyName": "<YOUR-KEYPAIR-HERE>",
+            "SecurityGroupIds": ["<FrontendSg-VALUE-HERE>"]
+            "InstanceType": "t2.micro"
+            }'
+
+        ```
 
 
 ### 11.Create frontend target group
@@ -412,7 +416,8 @@ Include a brief description and a diagram of the architecture built using the AW
         --vpc-id <YOUR-PRIMARY-VPC-ID \
         --target-type instance \
         --tags Key=Name,Value=frontendTg \
-        --region us-east-1   
+        --region us-east-1  
+
     ```
    - On output Look for **TargetGroupArn** and save it to your notes.
 
@@ -538,7 +543,7 @@ Include a brief description and a diagram of the architecture built using the AW
 
 - You can get the rds replica status by this command
   ```bash
-    ws rds describe-db-instances --db-instance-identifier readreplicadbinstance --query "DBInstances[0].DBInstanceStatus" --region us-east-2
+    aws rds describe-db-instances --db-instance-identifier readreplicadbinstance --query "DBInstances[0].DBInstanceStatus" --region us-east-2
   ```
 
 ### 16. For testing
@@ -547,17 +552,17 @@ Include a brief description and a diagram of the architecture built using the AW
    The Name of the Backend and Frontend records depends upon you. (in my case I name it sbtphapi for backend and sbtphapp for frontend.)
   
     ```bash
-    Backend:
-        Type: CNAME
-        Name: sbtphapi
-        Value: <backendALB-DNS-HERE>
+        Backend:
+            Type: CNAME
+            Name: sbtphapi
+            Value: <backendALB-DNS-HERE>
 
-    Frontend:
-        Type: CNAME
-        Name: sbtphapp
-        Value: <frontendALB-DNS-HERE>
-    
-  ```
+        Frontend:
+            Type: CNAME
+            Name: sbtphapp
+            Value: <frontendALB-DNS-HERE>
+        
+    ```
 
    - For backend, open the browser and copy the paste this url https://<BACKEND-NAME-HERE>.<YOUR-DOMAIN-HERE>/sbtph_api/api/active.php (eg https://sbtphapi.robudexdevops.com/sbtph_api/api/active.php) The ouput should similar to this
 
@@ -578,9 +583,10 @@ Include a brief description and a diagram of the architecture built using the AW
 ### 1.delete frontend and backend ALB
  
   ```bash
-     aws elbv2  delete-load-balancer --load-balancer-arn <YOUR-BACKENDALB-ARN-HERE> --region us-east-1  
+        aws elbv2  delete-load-balancer --load-balancer-arn <YOUR-BACKENDALB-ARN-HERE> --region us-east-1  
 
-     aws elbv2  delete-load-balancer --load-balancer-arn <YOUR-FRONTENDALB-ARN-HERE> --region us-east-1  
+        aws elbv2  delete-load-balancer --load-balancer-arn <YOUR-FRONTENDALB-ARN-HERE> --region us-east-1  
+
   ```
   - For checking..
 
