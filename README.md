@@ -4,7 +4,7 @@ This branch represents the next step in our DevOps journey, where we continue to
 
 1. **AWS Console**: We've leveraged the AWS Management Console for manual setup and configuration. You can find a tutorial for using the AWS Console [here](aws_console/README.md).
 
-2. **AWS CLI**: Automation was achieved through AWS Command Line Interface (CLI) commands. Learn how to use the AWS CLI [here](NOT YET FINISHED).
+2. **AWS CLI**: Automation was achieved through AWS Command Line Interface (CLI) commands. Learn how to use the AWS CLI [here](aws_cli/README.md).
 
 3. **CloudFormation**: We employed AWS CloudFormation for infrastructure as code (IaC) to define and provision our architecture. Explore AWS CloudFormation through this [tutorial](NOT YET FINISHED).
 
