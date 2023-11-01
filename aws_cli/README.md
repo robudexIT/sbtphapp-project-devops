@@ -119,7 +119,7 @@ Include a brief description and a diagram of the architecture built using the AW
         aws rds describe-db-instances --db-instance-identifier primarydbinstance --query "DBInstances[0].DBInstanceStatus" --region us-east-1     
 
         ```
-    - Run this command and copy  the **Endpoint.Address** and **DBInstanceArn** to your notepad:
+   - Run this command and copy  the **Endpoint.Address** and **DBInstanceArn** to your notepad:
 
         ```bash
             aws rds describe-db-instances --db-instance-identifier primarydbinstance --region us-east-1
