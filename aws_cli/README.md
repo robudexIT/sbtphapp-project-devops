@@ -35,17 +35,17 @@ Include a brief description and a diagram of the architecture built using the AW
    - Change to your working project directory as described in the **Prerequisites** section
    - Create a VPC using AWS CloudFormation in the us-east-1 region:
 
-   ```bash
-        aws cloudformation create-stack --stack-name primary-vpc-stack \
-        --template-body file://automation/cloudformation/nestedstack/vpc.yaml \
-        --parameters ParameterKey=VpcName,ParameterValue=primaryVpc ParameterKey=SSHLocation,ParameterValue=0.0.0.0/0 --region us-east-1
+        ```bash
+                aws cloudformation create-stack --stack-name primary-vpc-stack \
+                --template-body file://automation/cloudformation/nestedstack/vpc.yaml \
+                --parameters ParameterKey=VpcName,ParameterValue=primaryVpc ParameterKey=SSHLocation,ParameterValue=0.0.0.0/0 --region us-east-1
 
-     ```
+        ```
    - Use the command below to check the stack's comprehensive status where --stack-name=primary-vpc-stack:
 
-    ```bash
-        aws cloudformation describe-stacks --stack-name primary-vpc-stack --region us-east-1
-    ```  
+        ```bash
+            aws cloudformation describe-stacks --stack-name primary-vpc-stack --region us-east-1
+        ```  
    - Wait until the "StackStatus" becomes "CREATE_COMPLETE". Alternatively, use the command below to filter the output message to "StackStatus" only:
    
      ```bash
