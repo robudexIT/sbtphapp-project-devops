@@ -121,10 +121,10 @@ Include a brief description and a diagram of the architecture built using the AW
         ```
     - Run this command and copy  the **Endpoint.Address** and **DBInstanceArn** to your notepad:
 
-     ```bash
-         aws rds describe-db-instances --db-instance-identifier primarydbinstance --region us-east-1
+        ```bash
+            aws rds describe-db-instances --db-instance-identifier primarydbinstance --region us-east-1
 
-     ```
+        ```
 ### 3. Launch Temporary Instance to Restore Database to rds Instance.
 
   - Execute this command to initiate a temporary instance. Retrieve the **BackendSg** value from your notes and insert it into the **vpc-security-group-ids** field. Similarly, locate the **BackendPubSub01** value and place it into the subnet-id field.:
@@ -379,15 +379,15 @@ Include a brief description and a diagram of the architecture built using the AW
 
    - Open the 'userdata/frontend.sh' file, find the code section below, update it with your values, and remember to save the file.
 
-    ```bash 
+        ```bash 
             AWS_API_IP="<backendALB-DNS-HERE>"
-    ```
+        ```
 
    - Encode 'frontend.sh' into base64 encoding. Copy the base64 output and paste it into your notes.
 
-    ```bash
-        base64 -w 0 < userdata/frontend.sh     
-    ``` 
+        ```bash
+            base64 -w 0 < userdata/frontend.sh     
+        ``` 
 
    - Run this command to create the 'frontend_launch_template,' ensuring that you paste the base64 output into the '**UserData'** field. Refer to your notes to fill in the missing values for the required fields. 
 
