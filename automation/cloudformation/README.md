@@ -35,7 +35,7 @@ Include a brief description and a diagram of the architecture built using the AW
 ## Setup Instructions
 ### 1. CLONNING PROJECT REPOSITORY:
 
-        ```bash
+        ```shell
           git clone -b lift-and-shift-high-availability https://github.com/robudexIT/sbtphapp-project-devops.git
 
         ```
@@ -44,14 +44,14 @@ Include a brief description and a diagram of the architecture built using the AW
 
 ### 2. Change to Project Directory
 
-      ```bash
+      ```shell
         cd sbtphapp-project-devops
       ```
    - Details Explaination
      This command changes your current working directory to the directory you just cloned from the Git repository. You will typically find configuration files and scripts within this directory.
 
 ### 3. Create S3 Bucket for Cloudformation Templates (must unique)
-      ```bash
+      ```shell
         aws s3api create-bucket --bucket BUCKET_NAME --region YOURPRIMARYREGION
         
         #example:
@@ -63,7 +63,7 @@ Include a brief description and a diagram of the architecture built using the AW
 
 ### 4. Copy nestedstack folder to newly created bucket
 
-      ```bash
+      ```shell
           aws s3 sync automation/cloudformation/nestedstack s3://YOUR_BUCKET_NAME/nestedstack
 
           #aws s3 sync automation/cloudformation/nestedstack s3://robudexdevopsbucket/nestedstack
@@ -72,7 +72,7 @@ Include a brief description and a diagram of the architecture built using the AW
      This command copies a file or directory from your local system (in the automation/cloudformation/nestedstack directory) to an S3 bucket (s3://YOUR_BUCKET_NAME/nestedstack). This is a common way to upload configuration files to S3.
 
 ### 5.  Update your bucket name in rootstack.yaml filename
-      ```bash
+      ```shell
 
         sed -i 's/<YOUR-UNIQUE-BUCKET HERE>/<YOUR_CREATED_BUCKET>/g' automation/cloudformation/rootstack.yaml
         
@@ -84,7 +84,7 @@ Include a brief description and a diagram of the architecture built using the AW
 
 ### 6. Request for Certificate. 
 
-      ```bash
+      ```shell
         aws acm request-certificate --domain-name *.YOURVALIDDOMAINNAME --validation-method DNS --region YOURPRIMARYREGION
   
         #aws acm request-certificate --domain-name *.robudexdevops.com --validation-method DNS --region us-east-1
@@ -94,13 +94,13 @@ Include a brief description and a diagram of the architecture built using the AW
 
 ### 7. Check Cerficate Status
 
-      ```bash
+      ```shell
         aws acm describe-certificate --certificate-arn <YOUR CERTIFICATED ARN>
       ```
    - Details Explaination:      
      This command retrieves information about the ACM certificate specified by its Amazon Resource Name (ARN). You would replace <YOUR CERTIFICATED ARN> with the actual ARN of the certificate you requested in the previous step.Please locate a similar piece of information below and copy it into your notepad.
     
-      ```bash
+      ```shell
           "ResourceRecord": {
                           "Name": "_529534dcedf77a92f5d2fb66ed7ca9ba.robudexdevops.com.",
                           "Type": "CNAME",
@@ -120,7 +120,7 @@ Include a brief description and a diagram of the architecture built using the AW
 
 ### 9. Check  Certificate Status
     
-      ```bash
+      ```shell
               aws acm describe-certificate --certificate-arn <YOUR CERTIFICATED ARN> 
       ```   
    - Details Explaination:
@@ -133,7 +133,7 @@ Include a brief description and a diagram of the architecture built using the AW
 
 ### 11. Create the primary-stack
 
-      ```bash
+      ```shell
           aws cloudformation create-stack --stack-name primary-stack --template-body file://automation/cloudformation/rootstack.yaml --parameters file://automation/cloudformation/us-east-1-parameters.json --region YOURPRIMARYREGION
 
       ```
@@ -142,7 +142,7 @@ Include a brief description and a diagram of the architecture built using the AW
 
 ### 12. Describing the primary-stack
    
-      ```bash
+      ```shell
             aws cloudformation describe-stacks --stack-name primary-stack --region YOURPRIMARYPREGION
       ```
    - Details Explaination:  
@@ -150,20 +150,20 @@ Include a brief description and a diagram of the architecture built using the AW
    - Alternatively you can use this command below to filter the output and focus only on the  status of the stack: Run this command once every minute or two. Until the status change  from **"CREATE_IN_PROGRESS"** to **"CREATE_COMPLETE"**
 
 
-        ```bash
+        ```shell
               aws cloudformation describe-stacks --stack-name primary-stack --query "Stacks[0].StackStatus" --region YOURPRIMARYREGION
         ```   
 
    - Once the StackStatus is equal to **"CREATE_COMPLETE"**. Run the command below 
 
-        ```bash
+        ```shell
           aws cloudformation describe-stacks --stack-name primary-stack  --query "Stacks[0].Outputs" --region YOURPRIMARYREGION
 
           #aws cloudformation describe-stacks --stack-name primary-stack  --query "Stacks[0].Outputs" --region us-east-1
 
         ```   
    -  Add these Outputs Informations to your GoDaddy DNS Records
-       ```bash 
+       ```shell 
           1. Type:  CNAME    
             Name: <FrontendSubdomain-Value>                               
             Value:  <FrontendALBDNSName-Value>
@@ -183,7 +183,7 @@ Include a brief description and a diagram of the architecture built using the AW
 
     Run the command below again, and take note the FrontendAPIhttps  and BackendAPIhttps values.
 
-          ```bash
+          ```shell
               aws cloudformation describe-stacks --stack-name primary-stack  --query "Stacks[0].Outputs" --region YOURPRIMARYREGION
 
               #aws cloudformation describe-stacks --stack-name primary-stack  --query "Stacks[0].Outputs" --region us-east-1
@@ -207,7 +207,7 @@ Similar to step 10, you are instructed to fill up a JSON file named us-east-2-pa
 
 ### 15. Create the replica-stack
 
-    ```bash
+    ```shell
         aws cloudformation create-stack --stack-name primary-stack --template-body file://automation/cloudformation/rootstack.yaml --parameters file://automation/cloudformation/us-east-2-parameters.json --region YOURBACKUPREGION
         
       #  aws cloudformation create-stack --stack-name replica-stack --template-body file://automation/cloudformation/rootstack.yaml --parameters file://automation/cloudformation/us-east-2-parameters.json --region us-east-2
@@ -219,7 +219,7 @@ Similar to step 10, you are instructed to fill up a JSON file named us-east-2-pa
 
 ### 16. Deleting The Stacks 
 
-     ```bash
+     ```shell
         aws cloudformation delete-stack --stack-name primary-vpc-stack --region us-east-1
         aws cloudformation delete-stack --stack-name replica-vpc-stack --region us-east-2
      ```
