@@ -30,7 +30,7 @@ Please ensure that you have met these prerequisites before proceeding with the s
 
 Include a brief description and a diagram of the architecture built using the AWS CLOUDFORMATION.
 
-![Architecture Diagram](../screenshots/sbtphapp_aws_lift_and_shift_high_availability.png)
+![Architecture Diagram](../../screenshots/sbtphapp_aws_lift_and_shift_high_availability.png)
 
 ## Setup Instructions
 ### 1. CLONNING PROJECT REPOSITORY:
