@@ -37,8 +37,7 @@ Include a brief description and a diagram of the architecture built using the AW
  - Command:
 
             ```shell
-                  git clone -b lift-and-shift-high-availability https://github.com/robudexIT/sbtphapp-project-devops.git
-    
+            git clone -b lift-and-shift-high-availability https://github.com/robudexIT/sbtphapp-project-devops.git
             ```
   - Details Explaination
      This command clones a Git repository (sbtphapp-project-devops) and checks out the branch named **"lift-and-shift-high-availability."** This branch likely contains the project files and configuration needed for your deployment.
