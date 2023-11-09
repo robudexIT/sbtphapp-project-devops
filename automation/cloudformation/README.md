@@ -143,9 +143,9 @@ Include a brief description and a diagram of the architecture built using the AW
 
 ### 12. Describing the primary-stack
    
-      ```shell
-            aws cloudformation describe-stacks --stack-name primary-stack --region YOURPRIMARYPREGION
-      ```
+          ```shell
+                aws cloudformation describe-stacks --stack-name primary-stack --region YOURPRIMARYPREGION
+          ```
    - Details Explaination:  
      By running this command, you can obtain detailed information about the CloudFormation stack, including its current status, the resources it contains, and various configuration details. This step can be useful for monitoring and troubleshooting the stack's deployment, especially in the primay region. Please note that creating the stack, which includes multiple child stacks, may take some time due to its complexity. 
    - Alternatively you can use this command below to filter the output and focus only on the  status of the stack: Run this command once every minute or two. Until the status change  from **"CREATE_IN_PROGRESS"** to **"CREATE_COMPLETE"**
