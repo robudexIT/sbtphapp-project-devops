@@ -189,14 +189,14 @@ Include a brief description and a diagram of the architecture built using the AW
    
  - After adding the records, time to test our apps.
 
-    Run the command below again, and take note the FrontendAPIhttps  and BackendAPIhttps values.
+  Run the command below again, and take note the FrontendAPIhttps  and BackendAPIhttps values.
 
-          ```shell
+  ```shell
               aws cloudformation describe-stacks --stack-name primary-stack  --query "Stacks[0].Outputs" --region YOURPRIMARYREGION
 
               #aws cloudformation describe-stacks --stack-name primary-stack  --query "Stacks[0].Outputs" --region us-east-1
   
-          ```
+  ```
   -  For Backend Test, paste BackendAPIhttps to the browser and add /sbtph_api/api/active.php. If the output is same as the screenshot below, The backend is properly working.
 
   ![GooDaddy Adding Records](../../screenshots/backend-test.png)
