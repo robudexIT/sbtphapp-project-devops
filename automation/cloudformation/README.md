@@ -30,7 +30,7 @@ Please ensure that you have met these prerequisites before proceeding with the s
 
 Include a brief description and a diagram of the architecture built using the AWS CLOUDFORMATION.
 
-![Architecture Diagram](../screenshots/sbtphapp_aws_lift_and_shift_high_availability.png
+![Architecture Diagram](../screenshots/sbtphapp_aws_lift_and_shift_high_availability.png)
 
 ## Setup Instructions
 ### 1. CLONNING PROJECT REPOSITORY:
@@ -114,7 +114,7 @@ Include a brief description and a diagram of the architecture built using the AW
 
    - On the image below, is adding this records in GoDaddy DNS provider
 
-   ![GooDaddy Adding Records](../screenshots/godday_cert_add_records.png)
+    ![GooDaddy Adding Records](../../screenshots/godday_cert_add_records.png)
 
 ### 9. Check  Certificate Status
     
@@ -173,7 +173,7 @@ Include a brief description and a diagram of the architecture built using the AW
       ``` 
    -  Like in the screenshot below:
 
-     ![GooDaddy Adding Records](../screenshots/frontend_backend_dns_records.png)
+     ![GooDaddy Adding Records](../../screenshots/frontend_backend_dns_records.png)
  
 ### 13. Testing The APP.
    
@@ -189,13 +189,13 @@ Include a brief description and a diagram of the architecture built using the AW
           ```
   -  For Backend Test, paste BackendAPIhttps to the browser and add /sbtph_api/api/active.php. If the output is same as the screenshot below, The backend is properly working.
 
-  ![GooDaddy Adding Records](../screenshots/backend-test.png)
+  ![GooDaddy Adding Records](../../screenshots/backend-test.png)
  
   - For Frontend Test, paste  FrontendAPIhttps to the browser and add /sbtph_app/login. For credentials, **(extension: 6336, secret: 99999)**. If the outputs are the same as the screenshots below, The Frontend is properly working.
 
-    ![GooDaddy Adding Records](../screenshots/frontend-test1.png)
+    ![GooDaddy Adding Records](../../screenshots/frontend-test1.png)
 
-    ![GooDaddy Adding Records](../screenshots/frontend-test2.png)
+    ![GooDaddy Adding Records](../../screenshots/frontend-test2.png)
 
 
 
