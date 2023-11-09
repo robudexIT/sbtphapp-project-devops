@@ -34,7 +34,8 @@ Include a brief description and a diagram of the architecture built using the AW
 
 ## Setup Instructions
 ### 1. CLONNING PROJECT REPOSITORY:
-
+ - Command:
+ 
           ```shell
               git clone -b lift-and-shift-high-availability https://github.com/robudexIT/sbtphapp-project-devops.git
 
