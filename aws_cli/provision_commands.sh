@@ -866,7 +866,7 @@ aws autoscaling create-auto-scaling-group \
 
 
 
-#DELETE RESOUCE
+#DELETING  AWS RESOUCES
 1.delete frontend and backend ALB
   aws elbv2  delete-load-balancer --load-balancer-arn arn:aws:elasticloadbalancing:us-east-1:427875724091:loadbalancer/app/frontendALB/963647722ef9c155
   aws elbv2  describe-load-balancers
@@ -916,7 +916,7 @@ aws rds create-db-instance-read-replica \
 --db-instance-class db.t3.micro \
 --no-publicly-accessible \
 --db-subnet-group-name dbsubnetgroupregion2 \
---vpc-security-group-ids sg-0312ffc7c0deaae0d \
+--vpc-security-group-ids REPLICA-DatabaseSg- \
 --source-region us-east-1 \
 --tags Key=Name,Value=readreplicadbinstance \
 --region us-east-2 

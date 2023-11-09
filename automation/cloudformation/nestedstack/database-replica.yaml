@@ -4,8 +4,8 @@ Description: RDS Storage Encrypted
 Parameters:
   SourceDBInstanceIdentifier:
     Type: String
-    Default: "arn:aws:rds:us-east-1:427875724091:db:sbtphappdbinstances"
-  DBInstanceType:
+    Default: "arn:aws:rds:us-east-1:427875724091:db:primarydbinstance"
+  DBInstanceClass:
     Type: String
     Default: db.t3.micro
   SourceRegion:
@@ -22,39 +22,43 @@ Parameters:
       Type: String
       Default: dbsubnetgroupregion2
 
-  VPCSecurityGroup:
+  DBInstanceID: 
+    Type: String
+
+  DatabaseSg:
       Type: String
-      Default: sg-04a88a1e6709ab421
+      Default: sg-0cf49b44e3d836a61
 
 Resources:
-  MyKey:
-    Type: "AWS::KMS::Key"
-    Properties:
-      KeyPolicy:
-        Version: 2012-10-17
-        Id: key-default-1
-        Statement:
-          - Sid: Enable IAM User Permissions
-            Effect: Allow
-            Principal:
-              AWS: !Join
-                - ""
-                - - "arn:aws:iam::"
-                  - !Ref "AWS::AccountId"
-                  - ":root"
-            Action: "kms:*"
-            Resource: "*"
+  # MyKey:
+  #   Type: "AWS::KMS::Key"
+  #   Properties:
+  #     KeyPolicy:
+  #       Version: 2012-10-17
+  #       Id: key-default-1
+  #       Statement:
+  #         - Sid: Enable IAM User Permissions
+  #           Effect: Allow
+  #           Principal:
+  #             AWS: !Join
+  #               - ""
+  #               - - "arn:aws:iam::"
+  #                 - !Ref "AWS::AccountId"
+  #                 - ":root"
+  #           Action: "kms:*"
+  #           Resource: "*"
   REPLICARDS:
     Type: "AWS::RDS::DBInstance"
     Properties:
+      DBInstanceIdentifier: !Ref  DBInstanceID
       AllocatedStorage: !Ref DBAllocatedStorage
-      DBInstanceClass: !Ref DBInstanceType
+      DBInstanceClass: !Ref DBInstanceClass
       DBSubnetGroupName: !Ref DBSubnetGroupName
       VPCSecurityGroups:
-         - !Ref VPCSecurityGroup
+         - !Ref DatabaseSg
       SourceDBInstanceIdentifier: !Ref SourceDBInstanceIdentifier
       SourceRegion: !Ref SourceRegion
-      KmsKeyId: !Ref MyKey
+      # KmsKeyId: !Ref MyKey
 
 Outputs:
   InstanceId:

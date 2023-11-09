@@ -1,0 +1,58 @@
+[
+    {
+        "ParameterKey": "VpcName",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "SSHLocation",
+        "ParameterValue": "0.0.0.0/0"
+    },
+    {
+        "ParameterKey": "InstanceType",
+        "ParameterValue": "t2.micro"
+    },
+    {
+        "ParameterKey": "KeyName",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "PrimaryDBInstanceID",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "ReplicaDBInstanceID",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "DBInstanceClass",
+        "ParameterValue": "db.t3.micro"
+    },
+    {
+        "ParameterKey": "DBAllocatedStorage",
+        "ParameterValue": "20"
+    },
+    {
+        "ParameterKey": "DBUsername",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "DBPassword",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "BackendSubdomain",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "FrontendSubdomain",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "RegisteredDomainName",
+        "ParameterValue": ""
+    },
+    {
+        "ParameterKey": "CertificateArn",
+        "ParameterValue": ""
+    }
+]

@@ -34,9 +34,16 @@ Parameters:
     Type: AWS::EC2::SecurityGroup::Id 
     Description: Security Gruop of Frontend Instance   
 
-  BackendALBDNSName:
+  BackendAPIhttps:
     Type: String 
-    Description: DNSName of BackendALB  
+    Description: Backend Secure Domain Name  
+
+  FrontendSubdomain:
+    Type: String
+  
+  RegisteredDomainName:
+    Type: String
+
   
  
   CertificateArn:
@@ -77,17 +84,19 @@ Resources:
               sudo apt install apache2  php php-mysql mysql-client git -y
               sudo apt install awscli -y
               sudo systemctl enable apache2
-              sudo systemctl stop apache2
+              sudo systemctl start apache2
 
               cd /tmp && git clone -b  lift-and-shift https://github.com/robudexIT/sbtphapp-project-devops.git
               #get the public ip address of the BackendALBDNSName
-              AWS_API_IP=${BackendALBDNSName}
+              AWS_API_IP=${BackendAPIhttps}
 
 
               cp -r /tmp/sbtphapp-project-devops/frontend/sbtph_app/ /var/www/html/
 
 
-              find /var/www/html/sbtph_app/js/app* -type f -exec sed -E -i "s/\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/$AWS_API_IP/g" {} +
+              #find /var/www/html/sbtph_app/js/app* -type f -exec sed -E -i "s/\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/$AWS_API_IP/g" {} +
+              find /var/www/html/sbtph_app/js/app* -type f -exec sed -E -i "s#\bhttp://([0-9]{1,3}\.){3}[0-9]{1,3}\b#$AWS_API_IP#g" {} +
+
 
               sudo chown -R ubuntu:ubuntu /var/www/html
 
@@ -175,6 +184,11 @@ Outputs:
   FrontendALBDNSName:
     Description: DNSName of FrontendALB 
     Value: !GetAtt FrontendALB.DNSName
+
+  FrontendAPIhttps: 
+    Description: Frontend Secure Domain Name
+    Value: !Sub https://${FrontendSubdomain}.${RegisteredDomainName}
+  
 
 
 

@@ -32,7 +32,13 @@ Parameters:
 
   BackendELBSg:  
     Type: AWS::EC2::SecurityGroup::Id 
-    Description: Security Gruop of Backend Instance   
+    Description: Security Gruop of Backend Instance 
+
+  BackendSubdomain:
+    Type: String
+  
+  RegisteredDomainName:
+    Type: String
 
 
   DBUsername:
@@ -106,7 +112,7 @@ Resources:
               DB_HOST_IP=${DBHostAddress}
               SBTPHAPP_USER=${DBUsername}
               SBTPHAPP_PWD=${DBPassword}
-              DBName="sbtphappdb"
+              DBName="sbtphapp_db"
 
               check_query="SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '$DBName'"
               result=$(mysql -u "$SBTPHAPP_USER" -h "$DB_HOST_IP" -p"$SBTPHAPP_PWD" -e "$check_query"  -sN)
@@ -119,12 +125,12 @@ Resources:
               else
 
                 # Database doesn't exist, so create it
-                create_query="CREATE DATABASE $db_name"
+                create_query="CREATE DATABASE $DBName"
                 mysql -u "$SBTPHAPP_USER" -h "$DB_HOST_IP" -p"$SBTPHAPP_PWD" -e "$create_query"
 
                 echo "Database '$DBName' has been created." 
                 # Restore the database from the backup file
-                mysql -u "$SBTPHAPP_USER" -h "$DB_HOST_IP" -p"$SBTPHAPP_PWD" "$DBName" < " /tmp/sbtphapp-project-devops/database/sbtphapp_db.sql"
+                mysql -u "$SBTPHAPP_USER" -h "$DB_HOST_IP" -p"$SBTPHAPP_PWD" "$DBName" < "/tmp/sbtphapp-project-devops/database/sbtphapp_db.sql"
 
                 echo "Database '$DBName' has been restored."
               fi
@@ -214,10 +220,14 @@ Resources:
           Value: BackendASG
           PropagateAtLaunch: true
 
+
 Outputs:
   BackendALBDNSName:
     Description: DNSName of BackendALB 
     Value: !GetAtt BackendALB.DNSName
+  BackendAPIhttps: 
+    Description: Backend Secure Domain Name
+    Value: !Sub https://${BackendSubdomain}.${RegisteredDomainName}
 
 
 

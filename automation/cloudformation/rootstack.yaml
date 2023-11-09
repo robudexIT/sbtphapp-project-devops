@@ -40,14 +40,14 @@ Parameters:
         Must begin with a letter and must not end with a hyphen or contain two
         consecutive hyphens.   
 
-  DBName:
-      Default: sbtphappdb
-      Description: SBTPHAPP Database Name
-      Type: String
-      MinLength: '1'
-      MaxLength: '64'
-      AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
-      ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
+  # DBName:
+  #     Default: sbtphappdb
+  #     Description: SBTPHAPP Database Name
+  #     Type: String
+  #     MinLength: '1'
+  #     MaxLength: '64'
+  #     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+  #     ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
   DBInstanceClass:
       Default: db.t3.micro
       Description: DB instance class
@@ -75,9 +75,16 @@ Parameters:
       MaxLength: '41'
       AllowedPattern: '[a-zA-Z0-9]*'
       ConstraintDescription: must contain only alphanumeric characters.
-  DBSubnetGroupName:
-      Type: String
+ 
+  BackendSubdomain:
+    Type: String
+  
+  FrontendSubdomain:
+    Type: String
 
+  RegisteredDomainName:
+    Type: String
+    ConstraintDescription: it must be your valid registered domain name that you will use in this project.
 
   CertificateArn:
     Type: String
@@ -91,6 +98,35 @@ Conditions:
   Region2CreateResources: !Equals 
     - !Ref AWS::Region   
     - us-east-2
+ 
+Metadata: 
+  AWS::CloudFormation::Interface: 
+    ParameterGroups: 
+      - 
+        Label: 
+          default: "VpcStackParameters"
+        Parameters: 
+          - VpcName
+          - SSHLocation
+      - 
+        Label: 
+          default: "DBStackParamaters"
+        Parameters: 
+          - DBInstanceClass
+          - DBInstanceID
+          - DBAllocatedStorage
+          - DBUsername
+          - DBPassword
+      - 
+        Label: 
+          default: "Ec2StackParamaters"
+        Parameters: 
+          - InstanceType
+          - KeyName
+          - BackendSubdomain
+          - FrontendSubdomain
+          - RegisteredDomainName
+          - CertificateArn
 
 
 AWSTemplateFormatVersion: '2010-09-09'
@@ -99,7 +135,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       # replace the TemplateURL with your own url
-      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/vpc.yaml
+      TemplateURL: https://robudexdevopsbucket.s3.amazonaws.com/nestedstack/vpc.yaml
       TimeoutInMinutes: '60'
       Parameters:
         VpcName: !Ref VpcName
@@ -110,20 +146,38 @@ Resources:
   DatabasePrimaryStack:
     Type: AWS::CloudFormation::Stack
     Condition:  Region1CreateResources
+    DependsOn: VPCStack
     Properties:
        # replace the TemplateURL with your own url
-      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/database-primary.yaml
+      TemplateURL: https://robudexdevopsbucket.s3.amazonaws.com/nestedstack/database-primary.yaml
       TimeoutInMinutes: '60'
       Parameters:
         DBSubnetGroupName: !GetAtt VPCStack.Outputs.DBSubnetGroupRegion1
         DatabaseSg: !GetAtt VPCStack.Outputs.DatabaseSg
         DBInstanceClass: !Ref DBInstanceClass
-        DBInstanceID: !Ref DBInstanceID
-        DBName: !Ref DBName
+        DBInstanceID: !Ref PrimaryDBInstanceID
         DBAllocatedStorage: !Ref DBAllocatedStorage
         DBUsername: !Ref DBUsername
         DBPassword:  !Ref DBPassword
+
+  DatabaseReplicaStack:
+    Type: AWS::CloudFormation::Stack
+    Condition:  Region2CreateResources
+    DependsOn: VPCStack
+    Properties:
+       # replace the TemplateURL with your own url
+      TemplateURL: https://robudexdevopsbucket.s3.amazonaws.com/nestedstack/database-replica.yaml
+      TimeoutInMinutes: '60'
+      Parameters:
+        DBSubnetGroupName: !GetAtt VPCStack.Outputs.DBSubnetGroupRegion2
+        DatabaseSg: !GetAtt VPCStack.Outputs.DatabaseSg
+        DBInstanceClass: !Ref DBInstanceClass
+        DBAllocatedStorage: !Ref DBAllocatedStorage
+        DBInstanceID: !Ref ReplicaDBInstanceID
+        SourceDBInstanceIdentifier: !Sub "arn:aws:rds:us-east-1:${AWS::AccountId}:db:${PrimaryDBInstanceID}"
+        SourceRegion: us-east-1
      
+   
 
   BackendStack:
     Type: AWS::CloudFormation::Stack
@@ -131,7 +185,7 @@ Resources:
     DependsOn: DatabasePrimaryStack
     Properties:
       # replace the TemplateURL with your own url
-      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/backend.yaml
+      TemplateURL: https://robudexdevopsbucket.s3.amazonaws.com/nestedstack/backend.yaml
       TimeoutInMinutes: '60'
       Parameters:
         VPCID: !GetAtt VPCStack.Outputs.VPCID
@@ -144,7 +198,9 @@ Resources:
         DBUsername: !Ref DBUsername
         DBPassword:  !Ref DBPassword
         DBHostAddress: !GetAtt DatabasePrimaryStack.Outputs.PrimaryRdsDbInstanceAddress
-        CertificateArn: arn:aws:acm:us-east-1:427875724091:certificate/281e0766-5de3-4d4d-90bf-33b3144b4703
+        BackendSubdomain: !Ref BackendSubdomain
+        RegisteredDomainName: !Ref RegisteredDomainName
+        CertificateArn: !Ref CertificateArn
 
 
   FrontendStack:
@@ -153,7 +209,7 @@ Resources:
     DependsOn: BackendStack
     Properties:
       # replace the TemplateURL with your own url
-      TemplateURL: https://robudex-cf-templates.s3.amazonaws.com/frontend.yaml
+      TemplateURL: https://robudexdevopsbucket.s3.amazonaws.com/nestedstack/frontend.yaml
       TimeoutInMinutes: '60'
       Parameters:
         VPCID: !GetAtt VPCStack.Outputs.VPCID
@@ -163,7 +219,9 @@ Resources:
         FrontendELBSg: !GetAtt VPCStack.Outputs.FrontendELBSg
         KeyName: !Ref KeyName
         InstanceType: !Ref InstanceType
-        BackendALBDNSName: !GetAtt BackendStack.Outputs.BackendALBDNSName
+        BackendAPIhttps: !GetAtt BackendStack.Outputs.BackendAPIhttps
+        FrontendSubdomain: !Ref FrontendSubdomain
+        RegisteredDomainName: !Ref RegisteredDomainName
         CertificateArn: arn:aws:acm:us-east-1:427875724091:certificate/281e0766-5de3-4d4d-90bf-33b3144b4703
 
 Outputs:
@@ -175,13 +233,30 @@ Outputs:
        Value: !Ref AWS::Region
     VPCStack:
       Value: !Ref VPCStack
+    
     BackendALBDNSName:
       Condition:  Region1CreateResources
-      Value: !GetAtt BackendStack.Outputs.BackendALBDNSName
+      Value: !GetAtt BackendStack.Outputs.FrontendALBDNSName
+
+    BackendSubdomain:
+      Condition:  Region1CreateResources
+      Value: !Ref BackendSubdomain
+              
+    BackendAPIhttps:
+      Condition:  Region1CreateResources
+      Value: !GetAtt BackendStack.Outputs.BackendAPIhttps
 
     FrontendALBDNSName:
+      Condition:  Region1CreateResources
+      Value: !GetAtt FrontendStack.Outputs.FrontendALBDNSName
+
+    FrontendSubdomain:
+      Condition:  Region1CreateResources
+      Value: !Ref FrontendSubdomain
+          
+    FrontendAPIhttps:
        Condition:  Region1CreateResources
-       Value: !GetAtt FrontendStack.Outputs.FrontendALBDNSName
+       Value: !GetAtt FrontendStack.Outputs.FrontendAPIhttps
 
          
 

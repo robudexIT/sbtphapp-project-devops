@@ -1,0 +1,80 @@
+# Replace <YOUR-UNIQUE-BUCKET HERE> with your actual bucket name in the file
+sed -i 's/<YOUR-UNIQUE-BUCKET HERE>/robudex-cf-templates/g' rootstack.yaml
+
+
+aws s3api create-bucket --bucket YOUR_BUCKET_NAME --region REGION
+
+
+sed -i 's/robudex-cf-templates/<YOUR-UNIQUE-BUCKET HERE>/g' rootstack.yaml
+
+aws s3 cp LOCAL_FILE_PATH s3://BUCKET_NAME/REMOTE_FILE_PATH
+
+aws s3 sync my-local-folder s3://my-unique-bucket/my-s3-folder
+
+1. git clone -b  lift-and-shift-high-availability https://github.com/robudexIT/sbtphapp-project-devops.git
+2. cd sbtphapp-project-devops
+3. aws s3api create-bucket --bucket BUCKET_NAME --region YOURPRIMARYREGION
+4. aws s3 cp automation/cloudformation/nestedstack s3://YOUR_BUCKET_NAME/nestedstack 
+5. sed -i 's/YOUR_BUCKET_NAME/<YOUR-UNIQUE-BUCKET HERE>/g' automation/cloudformation/rootstack.yaml
+6. aws acm request-certificate --domain-name *.YOURVALIDDOMAINNAME --validation-method DNS --region YOURPRIMARYREGION
+7.aws acm describe-certificate --certificate-arn <YOUR CERTIFICATED ARN> 
+8. Add ResourceRecord to goddady.com or to your choosen domain provider ReadReplicaSourceDBInstanceIdentifier
+9. Fillup automation/cloudformation/us-east-1-parameters.json
+10. aws cloudformation create-stack --stack-name primary-stack --template-body file://automation/cloudformation/rootstack.yaml --parameters file://automation/cloudformation/us-east-1-parameters.json --region YOURPRIMARYREGION
+11. Fillup automation/cloudformation/us-east-2-parameters.json
+12.  aws cloudformation create-stack --stack-name primary-stack --template-body file://automation/cloudformation/rootstack.yaml --parameters file://automation/cloudformation/us-east-2-parameters.json --region YOURBACKUPREGION
+
+
+cloudformation crate
+{
+    "StackId": "arn:aws:cloudformation:us-east-1:427875724091:stack/primary-stack/9fb0cdf0-7cc5-11ee-a94e-0e1e99d868ff"
+}
+
+
+aws cloudformation describe-stacks --stack-name primary-stack --query "Stacks[0].StackStatus" --region us-east-1
+"CREATE_IN_PROGRESS"
+
+
+find /var/www/html/sbtph_app/js/app* -type f -exec sed -E -i "s#\bhttps://mybackend.robudedevops.com\bhttps://mybackend.robudexdevops.comg" {} +
+
+  #find /var/www/html/sbtph_app/js/app* -type f -exec sed -E -i "s/https:\//mybackend.robudedevops.com/https:\//mybackend.robudexdevops.com/g" {} +
+
+
+  [
+    {
+        "OutputKey": "FrontendALBDNSName",
+        "OutputValue": "FrontendALB-726679034.us-east-1.elb.amazonaws.com"
+    },
+    {
+        "OutputKey": "FrontendAPIhttps",
+        "OutputValue": "https://myfrontend.robudedevops.com"
+    },
+    {
+        "OutputKey": "MainStackRegion",
+        "OutputValue": "us-east-1"
+    },
+    {
+        "OutputKey": "MainStackID",
+        "OutputValue": "arn:aws:cloudformation:us-east-1:427875724091:stack/primary-stack/17a8a080-7cc6-11ee-b232-0e7953393a81"
+    },
+    {
+        "OutputKey": "MainStackName",
+        "OutputValue": "primary-stack"
+    },
+    {
+        "OutputKey": "VPCStack",
+        "OutputValue": "arn:aws:cloudformation:us-east-1:427875724091:stack/primary-stack-VPCStack-KD2QUOOB1PRW/1a6353b0-7cc6-11ee-aba2-0ac2e38716a3"
+    },
+    {
+        "OutputKey": "BackendALBDNSName",
+        "OutputValue": "BackendALB-1469525221.us-east-1.elb.amazonaws.com"
+    },
+      {
+        "OutputKey": "BackendAPIhttps",
+        "OutputValue": "https://mybackend.robudedevops.com"
+    }
+]
+
+
+aws cloudformation describe-stacks --stack-name primary-stack  --query "Stacks[0].StackStatus" --region us-east-1
+"DELETE_IN_PROGRESS"
