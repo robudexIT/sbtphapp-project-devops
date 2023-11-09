@@ -44,19 +44,19 @@ Include a brief description and a diagram of the architecture built using the AW
 
 ### 2. Change to Project Directory
 
-      ```shell
-        cd sbtphapp-project-devops
-      ```
+    ```shell
+    cd sbtphapp-project-devops
+    ```
    - Details Explaination
      This command changes your current working directory to the directory you just cloned from the Git repository. You will typically find configuration files and scripts within this directory.
 
 ### 3. Create S3 Bucket for Cloudformation Templates (must unique)
-      ```shell
+     ```shell
         aws s3api create-bucket --bucket BUCKET_NAME --region YOURPRIMARYREGION
         
         #example:
         # aws s3api create-bucket --bucket robudexdevopsbucket --region us-east
-      ```
+     ```
    - Details Explaination
      This command creates an Amazon S3 bucket with the specified name (BUCKET_NAME) in a specific AWS region (YOURPRIMARYREGION). S3 buckets are used to store various files, including configuration files and application assets.
 
