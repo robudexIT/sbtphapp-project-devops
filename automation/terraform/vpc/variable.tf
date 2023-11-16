@@ -20,7 +20,10 @@ variable "az_subent_cidr_block" {
   default = {
     us-east-1a = "192.168.1.0/24"
     us-east-1b = "192.168.2.0/24"
-    us-east-1c = "192.168.50.0/24"
+    us-east-1c = "192.168.10.0/24"
+    us-east-1d = "192.168.11.0/24"
+    us-east-1e = "192.168.50.0/24"
+    us-east-1f = "192.168.51.0/24"
     us-east-2a = "172.16.1.0/24"
     us-east-2b = "172.16.2.0/24"
     us-east-2c = "172.16.50.0/24"

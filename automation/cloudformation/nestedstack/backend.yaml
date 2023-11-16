@@ -103,7 +103,7 @@ Resources:
               sudo apt install apache2  php php-mysql mysql-client git -y
               sudo apt install awscli -y
               sudo systemctl enable apache2
-              sudo systemctl stop apache2
+              sudo systemctl start apache2
 
               cd /tmp && git clone -b  lift-and-shift https://github.com/robudexIT/sbtphapp-project-devops.git
               cd /tmp/sbtphapp-project-devops
@@ -145,7 +145,7 @@ Resources:
               #change ownership to ubuntu user and apache2 group
               chown -R ubuntu:ubuntu /var/www/html
 
-              sudo systemctl start apache2
+              sudo systemctl restart apache2
               cd .. 
               sudo rm -rf /tmp/sbtphapp-project-devops
 

@@ -27,63 +27,206 @@ resource "aws_route_table" "sbtphapp_public_rt" {
     }
 }
 
+resource "aws_route_table" "sbtphapp_private_rt" {
+    vpc_id = aws_vpc.sbtphapp_vpc.id
+    
+    tags = {
+      Name = "${var.vpc_name}-privateRT"
+    }
+}
+
+
 
 
 data "aws_availability_zones" "available" {
     state = "available"
 }
 
-resource "aws_subnet" "frontend_subnet" {
+resource "aws_subnet" "frontend_subnet01" {
+  count = var.region == "us-east-1" ? 1 : 0
   vpc_id  = aws_vpc.sbtphapp_vpc.id
   availability_zone =  data.aws_availability_zones.available.names[0]
   cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[0]]
   map_public_ip_on_launch = true
   tags = {
-    Name = "frontend_subnet"
+    Name = "frontend_subnet01"
   }
 }
 
-resource "aws_subnet" "backend_subnet" {
+resource "aws_subnet" "frontend_subnet02" {
+  count = var.region == "us-east-1" ? 1 : 0
   vpc_id  = aws_vpc.sbtphapp_vpc.id
   availability_zone =  data.aws_availability_zones.available.names[1]
   cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[1]]
   map_public_ip_on_launch = true
-
   tags = {
-    Name = "backend_subnet"
+    Name = "frontend_subnet02"
   }
-
 }
 
-resource "aws_subnet" "database_subnet" {
+
+resource "aws_subnet" "backend_subnet01" {
+  count = var.region == "us-east-1" ? 1 : 0
   vpc_id  = aws_vpc.sbtphapp_vpc.id
   availability_zone =  data.aws_availability_zones.available.names[2]
   cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[2]]
   map_public_ip_on_launch = true
 
+  tags = {
+    Name = "backend_subnet01"
+  }
+
+}
+
+resource "aws_subnet" "backend_subnet02" {
+  count = var.region == "us-east-1" ? 1 : 0
+  vpc_id  = aws_vpc.sbtphapp_vpc.id
+  availability_zone =  data.aws_availability_zones.available.names[3]
+  cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[3]]
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "backend_subnet02"
+  }
+
+}
+
+resource "aws_subnet" "database_subnet01" {
+  count = var.region == "us-east-1" ? 1 : 0
+  vpc_id  = aws_vpc.sbtphapp_vpc.id
+  availability_zone =  data.aws_availability_zones.available.names[4]
+  cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[4]]
+  map_public_ip_on_launch = false
+
     tags = { 
-    Name = "database_subnet"
+    Name = "database_subnet01"
   }
 
 
 }
 
-resource "aws_route_table_association" "sbtphapp_public_rt_assoc_backend_subnet" {
-    subnet_id = aws_subnet.backend_subnet.id
+resource "aws_subnet" "database_subnet02" {
+  count = var.region == "us-east-1" ? 1 : 0
+  vpc_id  = aws_vpc.sbtphapp_vpc.id
+  availability_zone =  data.aws_availability_zones.available.names[5]
+  cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[5]]
+  map_public_ip_on_launch = false
+
+    tags = { 
+    Name = "database_subnet02"
+  }
+
+
+ }
+
+resource "aws_subnet" "database_replica_subnet01" {
+  count = var.region == "us-east-2" ? 1 : 0
+  vpc_id  = aws_vpc.sbtphapp_vpc.id
+  availability_zone =  data.aws_availability_zones.available.names[0]
+  cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[0]]
+  map_public_ip_on_launch = false
+
+    tags = { 
+    Name = "database_replica_subnet01"
+  }
+
+
+}
+
+resource "aws_subnet" "database_replica_subnet02" {
+  count = var.region == "us-east-2" ? 1 : 0
+  vpc_id  = aws_vpc.sbtphapp_vpc.id
+  availability_zone =  data.aws_availability_zones.available.names[1]
+  cidr_block =  var.az_subent_cidr_block[data.aws_availability_zones.available.names[1]]
+  map_public_ip_on_launch = false
+
+    tags = { 
+    Name = "database_replica_subnet02"
+  }
+
+
+}
+
+resource "aws_db_subnet_group" "aws_db_subnet_group_region1" {
+    count = var.region == "us-east-1" ? 1 : 0
+    name = "aws_db_subnet_group_region1"
+    subnet_ids = [aws_subnet.database_subnet01[0].id, aws_subnet.database_subnet02[0].id]
+    tags =  {
+      Name = "aws_db_subnet_group_region1"
+    }
+}
+
+
+
+resource "aws_db_subnet_group" "aws_db_subnet_group_region2" {
+    count = var.region == "us-east-2" ? 1 : 0 
+    name = "aws_db_subnet_group_region2"
+    subnet_ids = [aws_subnet.database_replica_subnet01[0].id, aws_subnet.database_replica_subnet02[0].id]
+    tags =  {
+      Name = "aws_db_subnet_group_region2"
+    }
+}
+
+
+
+
+resource "aws_route_table_association" "sbtphapp_public_rt_assoc_backend_subnet01" {
+    count = var.region == "us-east-1" ? 1 : 0
+    subnet_id = aws_subnet.backend_subnet01[0].id
     route_table_id = aws_route_table.sbtphapp_public_rt.id
 }
 
-resource "aws_route_table_association" "sbtphapp_public_rt_assoc_frontend_subnet" {
-  subnet_id = aws_subnet.frontend_subnet.id
+resource "aws_route_table_association" "sbtphapp_public_rt_assoc_backend_subnet02" {
+  count = var.region == "us-east-1" ? 1 : 0
+    subnet_id = aws_subnet.backend_subnet02[0].id
+    route_table_id = aws_route_table.sbtphapp_public_rt.id
+}
+
+
+resource "aws_route_table_association" "sbtphapp_public_rt_assoc_frontend_subnet01" {
+  count = var.region == "us-east-1" ? 1 : 0
+  subnet_id = aws_subnet.frontend_subnet01[0].id
   route_table_id = aws_route_table.sbtphapp_public_rt.id
 }
 
-resource "aws_route_table_association" "sbtphapp_public_rt_assoc_database_subnet" {
-  subnet_id = aws_subnet.database_subnet.id
+resource "aws_route_table_association" "sbtphapp_public_rt_assoc_frontend_subnet02" {
+  count = var.region == "us-east-1" ? 1 : 0 
+  subnet_id = aws_subnet.frontend_subnet02[0].id
   route_table_id = aws_route_table.sbtphapp_public_rt.id
 }
+
+
+resource "aws_route_table_association" "sbtphapp_private_rt_assoc_database_subnet01" {
+  count = var.region == "us-east-1" ? 1 : 0 
+  subnet_id = aws_subnet.database_subnet01[0].id
+  route_table_id = aws_route_table.sbtphapp_private_rt.id
+}
+
+resource "aws_route_table_association" "sbtphapp_private_rt_assoc_database_subnet02" {
+  count = var.region == "us-east-1" ? 1 : 0 
+  subnet_id = aws_subnet.database_subnet02[0].id
+  route_table_id = aws_route_table.sbtphapp_private_rt.id
+}
+
+resource "aws_route_table_association" "sbtphapp_private_rt_assoc_database_replica_subnet01" {
+  count = var.region == "us-east-2" ? 1 : 0 
+  subnet_id = aws_subnet.database_replica_subnet01[0].id
+  route_table_id = aws_route_table.sbtphapp_private_rt.id
+}
+
+
+resource "aws_route_table_association" "sbtphapp_private_rt_assoc_database_replica_subnet02" {
+  count = var.region == "us-east-2" ? 1 : 0 
+  subnet_id = aws_subnet.database_replica_subnet02[0].id
+  route_table_id = aws_route_table.sbtphapp_private_rt.id
+}
+
+
+
+
 
 resource "aws_security_group" "frontend_sg" {
+   count = var.region == "us-east-1" ? 1 : 0
     name = "frontend_sg"
     description = "Security Group for Frontend Instance"
     vpc_id = aws_vpc.sbtphapp_vpc.id 
@@ -128,7 +271,46 @@ resource "aws_security_group" "frontend_sg" {
 
 }
 
+resource "aws_security_group" "frontend_elb_sg" {
+   count = var.region == "us-east-1" ? 1 : 0
+   name = "frontend_elb_sg"
+   description = "Security Groupt of Frontend Loadbalancing"
+   vpc_id = aws_vpc.sbtphapp_vpc.id
+
+   ingress {
+        description = "Allowed Port 80 from the outside world"
+        from_port = 80
+        to_port = 80
+        protocol = "tcp"
+        cidr_blocks =  ["0.0.0.0/0"]
+
+   }
+   ingress {
+        description = "Allowed Port 443 from the outside world"
+        from_port = 443
+        to_port = 443
+        protocol = "tcp"
+        cidr_blocks =  ["0.0.0.0/0"]
+
+   }
+
+  egress {
+          from_port        = 0
+          to_port          = 0
+          protocol         = "-1"
+          cidr_blocks      = ["0.0.0.0/0"]
+          ipv6_cidr_blocks = ["::/0"]
+      }
+
+  tags = {
+       Name = "frontend_elb_sg"
+     }
+
+    
+}
+
 resource "aws_security_group" "backend_sg" {
+   count = var.region == "us-east-1" ? 1 : 0
     name = "backend_sg"
     description = "Security Group for Backend Instance"
     vpc_id = aws_vpc.sbtphapp_vpc.id 
@@ -150,17 +332,9 @@ resource "aws_security_group" "backend_sg" {
         cidr_blocks = ["0.0.0.0/0"]
     }
 
-    ingress {
-        description = "Allowed ssh traffic from backend_sg"
-        from_port = 80
-        to_port = 80
-        protocol = "tcp"
-        security_groups = [aws_security_group.frontend_sg.id]
-    }
-
 
      ingress {
-        description= "Allowed all traffic from database_sg"
+        description= "Allowed all traffic from it self"
         from_port = 0
         to_port =  0
         protocol = "-1"
@@ -182,6 +356,46 @@ resource "aws_security_group" "backend_sg" {
 
 }
 
+resource "aws_security_group" "backend_elb_sg" {
+  count = var.region == "us-east-1" ? 1 : 0
+
+   name = "backend_elb_sg"
+   description = "Security Groupt of Backtend Loadbalancing"
+   vpc_id = aws_vpc.sbtphapp_vpc.id
+
+   ingress {
+        description = "Allowed Port 80 from the outside world"
+        from_port = 80
+        to_port = 80
+        protocol = "tcp"
+        cidr_blocks =  ["0.0.0.0/0"]
+
+   }
+   ingress {
+        description = "Allowed Port 443 from the outside world"
+        from_port = 443
+        to_port = 443
+        protocol = "tcp"
+        cidr_blocks =  ["0.0.0.0/0"]
+
+   }
+
+    egress {
+          from_port        = 0
+          to_port          = 0
+          protocol         = "-1"
+          cidr_blocks      = ["0.0.0.0/0"]
+          ipv6_cidr_blocks = ["::/0"]
+      }
+
+      tags = {
+       Name = "backend_elb_sg"
+     }
+
+    
+}
+
+
 
 resource "aws_security_group" "database_sg" {
     name = "database_sg"
@@ -198,32 +412,9 @@ resource "aws_security_group" "database_sg" {
     }
 
 
-     ingress {
-        description= "Allowed Mysql traffic from backend_sg"
-        from_port = 3306
-        to_port = 3306
-        protocol = "tcp"
-        security_groups = [aws_security_group.backend_sg.id]
-    }
 
       ingress {
-        description = "Allowed ssh traffic from backend_sg"
-        from_port = 22
-        to_port = 22
-        protocol = "tcp"
-        security_groups = [aws_security_group.backend_sg.id]
-    }
-
-    # ingress {
-    #     description= "Allowed all traffic from database subnet of another region"
-    #     from_port = 0
-    #     to_port = 0
-    #     protocol = "-1"
-    #     cidr_blocks = [var.other_region_db_cidr]
-    # }
-
-      ingress {
-        description= "Allowed all traffic from database_sg"
+        description= "Allowed all traffic from itself"
         from_port = 0
         to_port = 0
         protocol = "-1"
@@ -248,38 +439,101 @@ resource "aws_security_group" "database_sg" {
 
 }
 
+resource "aws_security_group" "database_allow_peer_subnet_sg" {
+    name = "database_allow_peer_subnet_sg"
+    description = "Allow Other Region Database Subnet "
+    vpc_id = aws_vpc.sbtphapp_vpc.id 
+}
+
+resource "aws_security_group_rule" "allow_backend_sg" {
+  count = var.region == "us-east-1" ? 1 : 0
+  type              = "ingress"
+  from_port         = 3306
+  to_port           = 3306
+  protocol          = "tcp"
+  source_security_group_id = aws_security_group.backend_sg[0].id
+  security_group_id = aws_security_group.database_sg.id
+}
+
+
+
 output "vpc_id" {
    value = aws_vpc.sbtphapp_vpc.id
 }
 
-output "frontend_subnet_id" {
-    value = aws_subnet.frontend_subnet.id
+output "frontend_subnet01_id" {
+    value =  var.region == "us-east-1" ? aws_subnet.frontend_subnet01[0].id : null
+}
+output "frontend_subnet02_id" {
+    value = var.region == "us-east-1" ? aws_subnet.frontend_subnet02[0].id : null
 }
 
-output "backend_subnet_id" {
-    value = aws_subnet.backend_subnet.id
+output "backend_subnet01_id" {
+    value = var.region == "us-east-1" ? aws_subnet.backend_subnet01[0].id : null
 }
 
-output "database_subnet_id" {
-    value = aws_subnet.database_subnet.id
+output "backend_subnet02_id" {
+    value = var.region == "us-east-1" ? aws_subnet.backend_subnet02[0].id : null
+}
+
+output "database_subnet01_id" {
+    value = var.region == "us-east-1" ? aws_subnet.database_subnet01[0].id : null
+}
+
+output "database_subnet02_id" {
+    value = var.region == "us-east-1" ? aws_subnet.database_subnet02[0].id : null
+}
+
+output "database_replica_subnet01_id" {
+    value = var.region == "us-east-2" ? aws_subnet.database_replica_subnet01[0].id : null
+}
+
+output "database_replica_subnet02_id" {
+    value = var.region == "us-east-2" ? aws_subnet.database_replica_subnet02[0].id : null
 }
 
 output "database_sg_id" {
     value = aws_security_group.database_sg.id
 }
 
+output "database_allow_peer_subnet_sg" {
+    value = aws_security_group.database_allow_peer_subnet_sg.id
+}
+
+
 output "frontend_sg_id" {
-    value = aws_security_group.frontend_sg.id
+    value = var.region == "us-east-1" ? aws_security_group.frontend_sg[0].id : null
 }
 
 output "backend_sg_id" {
-    value = aws_security_group.backend_sg.id
+    value = var.region == "us-east-1" ? aws_security_group.backend_sg[0].id : null
+}
+
+output "backend_elb_sg_id" {
+    value = var.region == "us-east-1" ? aws_security_group.backend_elb_sg[0].id : null
+}
+
+output "frontend_elb_sg_id" {
+    value = var.region == "us-east-1" ? aws_security_group.frontend_elb_sg[0].id : null
+}
+
+output "aws_db_subnet_group_region1_name" {
+    value = var.region == "us-east-1" ? aws_db_subnet_group.aws_db_subnet_group_region1[0].id :null
+}    
+
+output "aws_db_subnet_group_region2_name" {
+    value =  var.region == "us-east-2" ? aws_db_subnet_group.aws_db_subnet_group_region2[0].id : null
 }
 
 
 output "sbtphapp_public_rt_id" {
     value = aws_route_table.sbtphapp_public_rt.id
 }
+
+output "sbtphapp_private_rt_id" {
+    value = aws_route_table.sbtphapp_private_rt.id
+}
+
 
 
 

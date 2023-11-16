@@ -24,6 +24,9 @@ Before you begin, ensure that you have the following:
 
 - **Key Pairs:** Create two key pairs, one for `us-east-1` and one for `us-east-2`, and save them to your working project directory.
 
+- You should have registered domain name.
+
+
 Please ensure that you have met these prerequisites before proceeding with the setup.
 
 ## Architecture Overview
@@ -170,7 +173,8 @@ Include a brief description and a diagram of the architecture built using the AW
           #aws cloudformation describe-stacks --stack-name primary-stack  --query "Stacks[0].Outputs" --region us-east-1
 
      ```   
--  Add these Outputs Informations to your GoDaddy DNS Records
+-  Add these Outputs Informations to your GoDaddy DNS Records: <br />
+      
        ```shell 
           1. Type:  CNAME    
             Name: <FrontendSubdomain-Value>                               

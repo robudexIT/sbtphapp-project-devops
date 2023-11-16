@@ -16,55 +16,58 @@ write_files:
     owner: root:root
     permissions: "777"
     content: |
-                #!/bin/bash -xe
-                REGION="${aws_region}"
-                export SBTPHAPP_USER=${mysql_app_user}
-                export SBTPHAPP_PWD=${mysql_app_pwd}
-                 #get the private ip address of the Instance Name=Database
-                DB_HOST_IP=$(aws --region $REGION ec2 describe-instances --filters "Name=tag:Server,Values=Database" "Name=instance-state-name,Values=running" --query 'Reservations[0].Instances[0].PrivateIpAddress' | sed 's/"//g') 
+              #!/bin/bash -xe
+              sudo apt update -y
+
+              sudo apt install apache2  php php-mysql mysql-client git -y
+              sudo apt install awscli -y
+              sudo systemctl enable apache2
+              sudo systemctl start apache2
+
+              cd /tmp && git clone -b  lift-and-shift-high-availability https://github.com/robudexIT/sbtphapp-project-devops.git
+              cd /tmp/sbtphapp-project-devops
 
 
-                cp -r /tmp/sbtphapp-project-devops/backend/sbtph_api/ /var/www/html/
+              DB_HOST_IP=${db_host_ip}
+              SBTPHAPP_USER=${mysql_app_user}
+              SBTPHAPP_PWD=${mysql_app_pwd}
+              DBName="sbtphapp_db"
 
-                sudo sed -i "s/SBTPHAPP_USER_HERE/$SBTPHAPP_USER/" /var/www/html/sbtph_api/config/database.php
-                sudo sed -i "s/SBTPHAPP_PWD_HERE/$SBTPHAPP_PWD/" /var/www/html/sbtph_api/config/database.php
-
-                if [ "$DB_HOST_IP" -ne "null"]; then
-                    sudo sed -i "s/[0-9]\+\(\.[0-9]\+\)\{3\}/$DB_HOST_IP/" /var/www/html/sbtph_api/config/database.php
-                fi
-
-                #change ownership to ubuntu user and apache2 group
-                chown -R ubuntu:ubuntu /var/www/html
-
-               
-                #update region in update_db_ip.sh
-                cp /tmp/sbtphapp-project-devops/backend/startup-service/update_db_ip.sh /home/ubuntu/update_db_ip.sh
-                sudo sed -i "s/AWS_REGION_HERE/$REGION/" /home/ubuntu/update_db_ip.sh
+              check_query="SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '$DBName'"
+              result=$(mysql -u "$SBTPHAPP_USER" -h "$DB_HOST_IP" -p"$SBTPHAPP_PWD" -e "$check_query"  -sN)
 
 
-                chown -R ubuntu:ubuntu /home/ubuntu/update_db_ip.sh
-                chmod +x /home/ubuntu/update_db_ip.sh
+              if [ -n "$result" ]; then
+                # Database already exists, so exit
+                echo "Database '$DBName' already exists. Exiting the script."
+        
+              else
 
-                cp /tmp/sbtphapp-project-devops/backend/startup-service/update_db_ip.service /etc/systemd/system/
+                # Database doesn't exist, so create it
+                create_query="CREATE DATABASE $DBName"
+                mysql -u "$SBTPHAPP_USER" -h "$DB_HOST_IP" -p"$SBTPHAPP_PWD" -e "$create_query"
 
-                sudo systemctl daemon-reload
-                sudo systemctl enable update_db_ip.service
-                sudo systemctl start update_db_ip.service
+                echo "Database '$DBName' has been created." 
+                # Restore the database from the backup file
+                mysql -u "$SBTPHAPP_USER" -h "$DB_HOST_IP" -p"$SBTPHAPP_PWD" "$DBName" < "/tmp/sbtphapp-project-devops/database/sbtphapp_db.sql"
 
-                cp /tmp/sbtphapp-project-devops/backend/cron/update_db_ip.crontab /tmp/
+                echo "Database '$DBName' has been restored."
+              fi
+              
+              cp -r /tmp/sbtphapp-project-devops/backend/sbtph_api/ /var/www/html/
 
-                # Install the updated crontab
-                crontab /tmp/update_db_ip.crontab
+              sudo sed -i "s/[0-9]\+\(\.[0-9]\+\)\{3\}/$DB_HOST_IP/" /var/www/html/sbtph_api/config/database.php
+              sudo sed -i "s/SBTPHAPP_USER_HERE/$SBTPHAPP_USER/" /var/www/html/sbtph_api/config/database.php
+              sudo sed -i "s/SBTPHAPP_PWD_HERE/$SBTPHAPP_PWD/" /var/www/html/sbtph_api/config/database.php
 
-                # Remove the temporary file
-                rm /tmp/update_db_ip.crontab
 
-                cd .. 
-                sudo rm -rf /tmp/sbtphapp-project-devops
+              #change ownership to ubuntu user and apache2 group
+              chown -R ubuntu:ubuntu /var/www/html
+
+              sudo systemctl start apache2
+              cd .. 
+              sudo rm -rf /tmp/sbtphapp-project-devops
 
              
 runcmd:
- - sudo systemctl enable apache2
- - sudo systemctl start apache2 
- - cd /tmp && git clone -b  lift-and-shift https://github.com/robudexIT/sbtphapp-project-devops.git
  - sudo /run/backend.sh

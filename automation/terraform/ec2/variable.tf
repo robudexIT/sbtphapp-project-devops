@@ -18,9 +18,6 @@ variable "ec2_instance_keypair" {
   }
 }
 
-variable "instance_name" {
-    type = string
-}
 
 variable "instance_type" {
     type = string 
@@ -39,25 +36,10 @@ variable "mysql_app_pwd" {
     type = string
 }
 
-variable "mysql_rep_user" {
-    type = string
+variable "db_host_ip"{
+  type = string
 }
 
-variable "mysql_rep_pwd" {
-    type = string
-}
-
-variable "subnet_id" {
-    type = string
-}
-
-variable "iam_instance_profile" {
-    type = string
-}
-
-variable "instance_sg_id" {
-    type = string
-}
 
 
 variable "vpc_id" {
@@ -74,4 +56,77 @@ variable "database_subnet_id" {
   type = string 
   default = ""
 }
+
+variable "launch_template_name" {
+  type = string
+
+}
+
+variable "launch_template_description" {
+  type = string
+}
+
+variable "launch_template_sg_id" {
+  type = string 
+}
+
+variable "target_group_name" {
+  type = string
+}
+
+variable "target_group_port" {
+  type = number
+  
+}
+
+variable "target_group_protocol" {
+  type = string
+}
+
+variable "load_balancer_name" {
+  type = string 
+}
+
+variable "load_balancer_sg" {
+  type = string
+}
+
+variable "load_balancer_subnet01"{
+  type = string
+}
+
+variable "load_balancer_subnet02" {
+  type = string
+}
+
+variable "certificate_arn" {
+  type = string
+}
+
+variable "asg_subnet01_id" {
+  type = string
+}
+
+variable "asg_subnet02_id" {
+  type = string
+}
+variable "aws_autoscaling_group_name" {
+  type = string
+}
+
+variable "backend_subdomain" {
+   type = string
+   
+}
+
+variable "frontend_subdomain" {
+  type = string
+ 
+}
+
+variable "registered_domain" {
+  type = string
+  
+}
+
 
