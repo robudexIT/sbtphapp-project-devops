@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  mariadb:
+    image: mariadb
+    env_file:
+      - ./env/db.env
+    volumes:
+      - sbtphdb:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+    ports:
+      - 3307:3306
+  api:
+    build: 
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - 8081:80
+    env_file:
+      - ./env/api.env
+    depends_on:
+      - mariadb
+  
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - 8082:80
+    depends_on:
+      - api
+      
+  dbadmin:
+    image: phpmyadmin
+    ports:
+      - 8080:80
+    env_file:
+      - ./env/admin.env
+    depends_on:
+      - mariadb
+      
+volumes:
+  sbtphdb:
