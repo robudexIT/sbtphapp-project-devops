@@ -1,12 +1,12 @@
 # SBTPHAPP-DEVOPS-PROJECT
 
-In this branch we will rebuild our sbtphapp project using docker.
-Docker is a platform and a set of tools designed to simplify the creation, deployment, and scaling of applications using containerization. Containers are lightweight, standalone, and executable software packages that include everything needed to run a piece of software, including the code, runtime, libraries, and system tools. Docker provides a standardized way to package and distribute applications, ensuring that they run consistently across different environments.Docker plays a crucial role in our DevOps journey as a transformative technology. To enhance our understanding, we will embark on a hands-on exploration of Docker by containerizing our sbtphapp project. This practical experience will empower us to leverage Docker's capabilities in simplifying application deployment, ensuring consistency across environments, and streamlining our development and operational processes.
+In this branch we will rebuild our sbtphapp project using **docker**.
+Docker is a platform and a set of tools designed to simplify the creation, deployment, and scaling of applications using containerization. Containers are lightweight, standalone, and executable software packages that include everything needed to run a piece of software, including the code, runtime, libraries, and system tools. **Docker** provides a standardized way to package and distribute applications, ensuring that they run consistently across different environments.**Docker** nplays a crucial role in our DevOps journey as a transformative technology. To enhance our understanding, we will embark on a hands-on exploration of Docker by containerizing our sbtphapp project. This practical experience will empower us to leverage Docker's capabilities in simplifying application deployment, ensuring consistency across environments, and streamlining our development and operational processes.
 In the previous "lift-and-shift" branch, we built the following architecture:
 
 
 ## Prerequisites:
-  - Host machine preferabbly Ubuntu 20.04 Server with atleast 4GB or memory. You can setup Server in Digital Ocean which they called as Droplet. They 200$ dollar free for 2months 
+  - Host machine preferabbly Ubuntu 20.04 Server with atleast **4GB of memory**. You can setup Server in Digital Ocean which they called as Droplet. They 200$ dollar free for 2months 
   - Docker must be installed on that machine. For docker installation in Ubuntu 20.04 Server, here's the link https://docs.docker.com/engine/install/ubuntu/
   
 
