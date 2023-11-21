@@ -58,9 +58,9 @@ In the previous "lift-and-shift" branch, we built the following architecture:
   ```  
 
 ## For Testing:
-  1. From the browser type http://<YOUR-MACHINE-PUBLIC-IP>:8082/sbtph_app/login
-     extension: 6336 <br />
-     secret: 99999   <br />
+  1. From the browser type http://<YOUR-MACHINE-PUBLIC-IP>:8082/sbtph_app/login <br />
+     **extension: 6336** <br />
+     **secret: 99999**   <br />
 
 
 ## Studying Docker Further:
