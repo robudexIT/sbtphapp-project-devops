@@ -1,23 +1,72 @@
 # SBTPHAPP-DEVOPS-PROJECT
 
-This branch represents the next step in our DevOps journey, where we continue to enhance our knowledge and skills. Our focus is on introducing additional AWS services to further our goals, and in this branch, we've used four different techniques to build the project:
-
-1. **AWS Console**: We've leveraged the AWS Management Console for manual setup and configuration. You can find a tutorial for using the AWS Console [here](aws_console/README.md).
-
-2. **AWS CLI**: Automation was achieved through AWS Command Line Interface (CLI) commands. Learn how to use the AWS CLI [here](aws_cli/README.md).
-
-3. **CloudFormation**: We employed AWS CloudFormation for infrastructure as code (IaC) to define and provision our architecture. Explore AWS CloudFormation through this [tutorial](NOT YET FINISHED).
-
-4. **Terraform**: The project also utilized Terraform, a popular IaC tool, for provisioning and managing AWS resources. Discover Terraform with this [tutorial](NOT YET FINISHED).
-
-In this branch, we have refined our architecture with the aim of enhancing availability and security. We've further enhanced security by implementing HTTPS to secure our application. Additionally, we've added a custom DNS domain using GoDaddy to make our application accessible under a unique domain name.
-
+In this branch we will rebuild our sbtphapp project using docker.
+Docker is a platform and a set of tools designed to simplify the creation, deployment, and scaling of applications using containerization. Containers are lightweight, standalone, and executable software packages that include everything needed to run a piece of software, including the code, runtime, libraries, and system tools. Docker provides a standardized way to package and distribute applications, ensuring that they run consistently across different environments.Docker plays a crucial role in our DevOps journey as a transformative technology. To enhance our understanding, we will embark on a hands-on exploration of Docker by containerizing our sbtphapp project. This practical experience will empower us to leverage Docker's capabilities in simplifying application deployment, ensuring consistency across environments, and streamlining our development and operational processes.
 In the previous "lift-and-shift" branch, we built the following architecture:
 
-![Previous Architecture](screenshots/sbtphapp_aws_lift_and_shift_architecture.png)
 
-In this branch, here's the updated architecture:
+## Prerequisites:
+  - Host machine preferabbly Ubuntu 20.04 Server with atleast 4GB or memory. You can setup Server in Digital Ocean which they called as Droplet. They 200$ dollar free for 2months 
+  - Docker must be installed on that machine. For docker installation in Ubuntu 20.04 Server, here's the link https://docs.docker.com/engine/install/ubuntu/
+  
 
-![Revised Architecture](screenshots/sbtphapp_aws_lift_and_shift_high_availability.png)
 
-Our objective is to introduce higher levels of availability, security, and a custom DNS domain to our application.
+
+## Architecture Overview: 
+
+![Previous Architecture](screenshots/sbtphapp_docker.png)
+
+
+## Setup Instructions:
+
+1. Clone Project Repository:<br />
+
+   ```bash
+        git clone -b docker  https://github.com/robudexIT/sbtphapp-project-devops.git
+   ```
+2. GET YOUR HOSTMACHINE IP ADDRESS. 
+
+3. cd to sbtphapp-project-devops/docker/frontend and run the command below.(Dont forget to change YOURMACHINE_PUBLIC_IP_HERE to your actual IP Address )
+
+   ```bash
+      find dist/js/* -type f -exec sed -E -i 's/\b([0-9]{1,3}\.){3}[0-9]{1,3}:8081\b/YOURMACHINE_PUBLIC_IP_HERE:8081/g' {} +
+   ```
+4. cd back to sbtphapp-project-devops/docker and run the command below.
+   This command is used to build Docker images defined in a docker-compose.yml file. Here's a breakdown of the command:
+
+   ```bash
+      docker compose build  
+   ```
+5. After the docker finished run the command below. This command is used to start Docker containers defined in a docker-compose.yml file in detached mode. Let's break down the command:
+  
+  ```bash
+     docker compose up -d
+  ```
+6. run the command below. This command is used to list the currently running Docker containers. Here's a breakdown of the command:
+
+  ```bash
+     docker ps
+  ```
+7. The expected ouput should match to the ouput below:
+
+  ```bash
+     891e213e266   docker-frontend   "/docker-entrypoint.…"   About an hour ago   Up About an hour   0.0.0.0:8082->80/tcp, :::8082->80/tcp       docker-frontend-1
+    644aea8af082   docker-api        "docker-php-entrypoi…"   About an hour ago   Up About an hour   0.0.0.0:8081->80/tcp, :::8081->80/tcp       docker-api-1
+    172c245a90ff   phpmyadmin        "/docker-entrypoint.…"   About an hour ago   Up About an hour   0.0.0.0:8080->80/tcp, :::8080->80/tcp       docker-dbadmin-1
+    e4e086122542   mariadb           "docker-entrypoint.s…"   About an hour ago   Up About an hour   0.0.0.0:3307->3306/tcp, :::3307->3306/tcp   docker-mariadb-1
+
+  ```  
+
+## For Testing:
+  1. From the browser type http://<YOUR-MACHINE-PUBLIC-IP>:8082/sbtph_app/login
+     extension: 6336 <br />
+     secret: 99999   <br />
+
+
+## Studying Docker Further:
+
+ Docker is vast, and I've only scratched the surface. Nonetheless, learning by doing is the most effective way to tackle the learning curve. For further insights and comprehensive information, the Docker documentation stands out as the best source for continued learning.
+
+ 
+    
+  
