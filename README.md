@@ -62,6 +62,12 @@ In the previous "lift-and-shift" branch, we built the following architecture:
      **extension: 6336** <br />
      **secret: 99999**   <br />
 
+  2. Once you've done, you can destroy all running containers by this command:
+  
+     ```bash
+        docker compose down
+     ``` 
+
 
 ## Studying Docker Further:
 
@@ -70,3 +76,8 @@ In the previous "lift-and-shift" branch, we built the following architecture:
  
     
   
+As we continue to our journey on learning Devops, we will now enter to the realm to Containerazation. Docker is the most popular Container Technology right now so we will implement it to our project. As always said, most effective way of learning is by doing.
+
+Again Im not docker guru Im learning it.And there's no way to learn it effectively than to implement it in the project.
+
+Once again, we'll be rebuilding our sbtphapp project, this time by dockerizing it.
