@@ -114,10 +114,10 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     79420e767eaf   none              null      local  <br />
 
 - Next, we will create redis service. On the **docker-stack.yml** the redis configure like this
-    redis: <br />
-     image: redis:alpine <br />
-     networks: <br />
-      - frontend <br />
+    **redis:** <br />
+     &nbsp;&nbsp;&nbsp;&nbsp;**image: redis:alpine** <br />
+     &nbsp;&nbsp;&nbsp;&nbsp;**networks:** <br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **frontend**<br />
    The docker command equivalent for creating this service is:
     
     ```bash
@@ -142,8 +142,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
         docker service ls 
     ```
    **Output:**
-        ID             NAME      MODE         REPLICAS   IMAGE          PORTS <br />
-        **10nbumtwuzl3   redis     replicated   1/1        redis:alpine**  
+     ![docker cluster complete](../screenshots/redis_service.png)
 
     To confirm on which node the Redis service container is running, you can use the following command:
 
@@ -151,22 +150,21 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
            docker service ps redis 
     ```
     **Output:** <br />
-        ID             NAME      IMAGE          NODE          DESIRED STATE   CURRENT STATE         ERROR     PORTS <br />
-        **sxwgorhgpe8k**   redis.1   redis:alpine   **master-node**   Running         Running 3 hours ago <br />
+    ![docker cluster complete](../screenshots/redis_ps.png)
 
     Based on the ouput, the container was created on the **master-node** itself.             
 
 - Next, we will create db service. On the docker-stack.yml the db configure like this:
 
-     db: <br />
-        image: postgres:15-alpine  <br />
-        environment:  <br />
-          POSTGRES_USER: "postgres"  <br />
-          POSTGRES_PASSWORD: "postgres"  <br />
-        volumes:  <br />
-        - db-data:/var/lib/postgresql/data  <br />
-        networks:  <br />
-        - backend  <br />
+     **db:** <br />
+         &nbsp;&nbsp;&nbsp;&nbsp;**image: postgres:15-alpine** <br />
+         &nbsp;&nbsp;&nbsp;&nbsp;**environment:**  <br />
+           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**POSTGRES_USER: "postgres"**  <br />
+           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**POSTGRES_PASSWORD: "postgres"** <br />
+         &nbsp;&nbsp;&nbsp;&nbsp;**volumes:**  <br />
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-**db-data:/var/lib/postgresql/data**  <br />
+         &nbsp;&nbsp;&nbsp;&nbsp;**networks:** <br />
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **backend**  <br />
 
     The docker command equivalent for creating this service is:
     
@@ -201,9 +199,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     ```
     
     **Output:**  <br />
-    ID             NAME      MODE         REPLICAS   IMAGE                PORTS  <br />
-    **dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine**    <br />
-    10nbumtwuzl3   redis     replicated   1/1        redis:alpine     <br />
+    ![docker cluster complete](../screenshots/db_service.png)
 
     To confirm on which node the Db service container is running, you can use the following 
     command:
@@ -212,21 +208,20 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
         docker service ps db 
     ```
     **Output:**  <br />
-    ID             NAME      IMAGE                NODE             DESIRED STATE   CURRENT STATE           ERROR     PORTS  <br />
-    6jhaznlcn8fe   db.1      postgres:15-alpine   **worker-node-02**   Running         Running 4 minutes ago  <br />
+    ![docker cluster complete](../screenshots/db_ps.png)
 
     Based on the ouput, the container was created on the worker-node-02 node.
 
 - Next, we will create vote service. On the docker-stack.yml the vote configure like this:
 
-    vote:  <br />
-        image: dockersamples/examplevotingapp_vote  <br />
-        ports:  <br />
-        - 5000:80   <br />
-        networks:  <br />
-        - frontend  <br />
-        deploy:  <br />
-        replicas: 2  <br />
+    **vote:**  <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;**image: dockersamples/examplevotingapp_vote**  <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;**ports:**  <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **5000:80**   <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;**networks:**  <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **frontend**  <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;**deploy:**  <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**replicas: 2**  <br />
 
     The docker command equivalent is:
     
@@ -257,10 +252,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
             docker service ls 
     ```
     **Output:**  <br />
-    ID             NAME      MODE         REPLICAS   IMAGE                                        PORTS  <br />
-    dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine      <br />                      
-    10nbumtwuzl3   redis     replicated   1/1        redis:alpine            <br />                      
-    **kcex184mlc58   vote      replicated   2/2        dockersamples/examplevotingapp_vote:latest   *:5000->80/tcp**  <br />
+    ![docker cluster complete](../screenshots/vote_service.png)
       
 
     As evident, the Vote service has been successfully created. Notably, this service publishes a port mapping, signifying that to access the container, one must navigate through **port 5000** on the **Node Host**. To pinpoint the node where the container is currently operating, you can employ the following command:
@@ -270,9 +262,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
            docker service ps vote
        ```
     **Output:**  <br />
-    ID             NAME      IMAGE                                        NODE             DESIRED STATE   CURRENT  <br />STATE            ERROR     PORTS
-    buux2xvm1387   vote.1    dockersamples/examplevotingapp_vote:latest   **worker-node-01**   Running         Running 24 seconds ago   <br />           
-    3c3v1zy5inu2   vote.2    dockersamples/examplevotingapp_vote:latest   **master-node**      Running         Running 25 seconds ago     <br />
+    ![docker cluster complete](../screenshots/vote_ps.png)
 
 
    According to the output, given that we've set the replicas=2, the container has been spun up on both the **master-node** and **worker-node-01**. Looks like our workload is nicely distributed across these nodes!
@@ -280,12 +270,12 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
 
 - Next, we will create result service. On the docker-stack.yml the result service configure like this:
 
-  result: <br />
-    image: dockersamples/examplevotingapp_result  <br />
-    ports:  <br />
-      - 5001:80  <br />
-    networks:  <br />
-      - backend  <br />
+  **result:** <br />
+     &nbsp;&nbsp;&nbsp;&nbsp;**image: dockersamples/examplevotingapp_result**  <br />
+     &nbsp;&nbsp;&nbsp;&nbsp;**ports:** <br />
+       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **5001:80**  <br />
+     &nbsp;&nbsp;&nbsp;&nbsp;**networks:**  <br />
+       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **backend**  <br />
 
     The docker command equivalent is:
     
@@ -313,11 +303,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
       docker service ls 
     ```
    **Output**:
-    ID             NAME      MODE         REPLICAS   IMAGE                                          PORTS
-    dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine                             
-    10nbumtwuzl3   redis     replicated   1/1        redis:alpine                                   
-    **ws42fc440gde   result    replicated   1/1        dockersamples/examplevotingapp_result:latest   *:5001->80/tcp**
-    kcex184mlc58   vote      replicated   2/2        dockersamples/examplevotingapp_vote:latest     *:5000->80/tcp
+   ![docker cluster complete](../screenshots/result_service.png)
 
 
    As you can see, the Result service has been successfully initiated. It's worth highlighting that this service has set up a port mapping, indicating that to reach the container, you'll want to head over to port **5001** on the **Node Host**. If you're curious about the specific node where this container is doing its thing, just run the following command:
@@ -327,9 +313,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
            docker service ps result
     ```
     **Output:**
-
-    ID             NAME       IMAGE                                          NODE             DESIRED STATE   CURRENT STATE                ERROR     PORTS
-    pu6jzcealofd   result.1   dockersamples/examplevotingapp_result:latest   **worker-node-01**   Running         Running about a minute ago 
+    ![docker cluster complete](../screenshots/result_ps.png)
 
     Based on the output, **result** container  is running on **worker-node-01**.
 
@@ -346,7 +330,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
       The docker command equivalent is:
     
     ```bash
-          docker service create --name result --network backend -p 5001:80 dockersamples/examplevotingapp_result
+          docker service create --name worker --network frontend  --network backend  --replicas 2 dockersamples/examplevotingapp_worker
     ``` 
     **Command Explainations:**
 
@@ -374,12 +358,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
             docker service ls 
     ```
     **Output:**  <br />
-    ID             NAME      MODE         REPLICAS   IMAGE                                          PORTS  <br />
-    dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine                              <br />
-    10nbumtwuzl3   redis     replicated   1/1        redis:alpine               <br />                     
-    ws42fc440gde   result    replicated   1/1        dockersamples/examplevotingapp_result:latest   *:5001->80/tcp  <br />
-    kcex184mlc58   vote      replicated   2/2        dockersamples/examplevotingapp_vote:latest     *:5000->80/tcp  <br />
-    **h5tbj0q3y7ig   worker    replicated   2/2        dockersamples/examplevotingapp_worker:latest**  <br />
+    ![docker cluster complete](../screenshots/worker_service.png)
 
 
     As you can see, **worker** service is newly added on the list of the services.    
@@ -390,10 +369,8 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
            docker service ps worker
     ```
     **Output**:  <br />
-    ID             NAME       IMAGE                                          NODE             DESIRED STATE   CURRENT<br /> STATE            ERROR     PORTS
-    o8qxqcattb6c   worker.1   dockersamples/examplevotingapp_worker:latest   **worker-node-02**   Running         Running 31 seconds ago   <br />           
-    2v3146io6z6a   worker.2   dockersamples/examplevotingapp_worker:latest   **worker-node-01**   Running         Running 33 seconds ago  <br />
- 
+     ![docker cluster complete](../screenshots/worker_ps.png)
+
     According to the output, given that we've set the **replicas=2**, the container has been spun up on both the **worker-node-01** and **worker-node-02**. Looks like our workload is nicely distributed across these nodes!
 
 
@@ -418,12 +395,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
        docker service ls
     ```     
     **Output:**  <br />
-    ID             NAME      MODE         REPLICAS   IMAGE                                          PORTS  <br />
-    dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine    <br />                          
-    10nbumtwuzl3   redis     replicated   1/1        redis:alpine    <br />                                
-    ws42fc440gde   result    replicated   1/1        dockersamples/examplevotingapp_result:latest   *:5001->80/tcp  <br />
-    kcex184mlc58   vote      replicated   **5/5**        dockersamples/examplevotingapp_vote:latest     *:5000->80/tcp  <br />
-    h5tbj0q3y7ig   worker    replicated   2/2        dockersamples/examplevotingapp_worker:latest    <br />
+    ![docker cluster complete](../screenshots/vote_service_scale.png)
 
     As you can see, the vote service scale-up from 2 to 5 containers.Verify the  actually container locations:
 
@@ -432,14 +404,9 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
 
     ```
   **Output:**
-    ID             NAME      IMAGE                                        NODE             DESIRED STATE   CURRENT STATE            ERROR     PORTS <br />
-    buux2xvm1387   vote.1    dockersamples/examplevotingapp_vote:latest   worker-node-01   Running         Running 18 minutes ago   <br />          
-    3c3v1zy5inu2   vote.2    dockersamples/examplevotingapp_vote:latest   master-node      Running         Running 18 minutes ago   <br />           
-    tdlml0xz6di7   vote.3    dockersamples/examplevotingapp_vote:latest   worker-node-01   Running         Running 35 seconds ago    <br />          
-    kphm1nsidy7m   vote.4    dockersamples/examplevotingapp_vote:latest   worker-node-02   Running         Running 26 seconds ago   <br />           
-    so9l3kj0ngbz   vote.5    dockersamples/examplevotingapp_vote:latest   master-node      Running         Running 35 seconds ago    <br />
+    ![docker cluster complete](../screenshots/vote_ps_scale.png)
 
-   According to the output, given that we've scale-up to  **5** , the containers has been spun up on  **worker-node-01 = 2**  **worker-node-02 = 1** and **master-node = 1**. Looks like our workload is nicely distributed across these nodes!
+   According to the output, given that we've scale-up to  **5** , the containers has been spun up on  **worker-node-01 = 2**  **worker-node-02 = 2** and **master-node = 1**. Looks like our workload is nicely distributed across these nodes!
 
 
    ## Swarm Mode Routing Mesh
