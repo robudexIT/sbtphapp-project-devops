@@ -338,10 +338,10 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
   worker: <br />
     &nbsp;&nbsp;&nbsp;&nbsp;image: dockersamples/examplevotingapp_worker  <br />
     &nbsp;&nbsp;&nbsp;&nbsp;networks:  <br />
-      - frontend  <br />
-      - backend  <br />
+       &nbsp;&nbsp;&nbsp;&nbsp;- frontend  <br />
+       &nbsp;&nbsp;&nbsp;&nbsp;- backend  <br />
     &nbsp;&nbsp;&nbsp;&nbsp;deploy:  <br />
-      replicas: 2  <br />
+       &nbsp;&nbsp;&nbsp;&nbsp;replicas: 2  <br />
 
       The docker command equivalent is:
     
