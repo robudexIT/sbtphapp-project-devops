@@ -1,0 +1,194 @@
+docker swarm init --advertise-addr 157.230.229.166
+
+docker swarm join --token SWMTKN-1-1wdkyi992tjs2st31fe2h786a2mlxd0wbyzptq9w0nem5s0myb-3r3y90npphh19zl3iw5zr7ew1 157.230.229.166:2377
+
+This node joined a swarm as a worker.
+
+docker network create -d overlay frontend
+docker network create -d overlay backend
+
+
+root@master-node:~# docker network ls
+NETWORK ID     NAME              DRIVER    SCOPE
+cag6fv53tna7   backend           overlay   swarm
+bef80b430af9   bridge            bridge    local
+fc95ba08ec5a   docker_gwbridge   bridge    local
+rtz6cq41t38o   frontend          overlay   swarm
+0fb85dab3b12   host              host      local
+3fvm0ivdkr90   ingress           overlay   swarm
+79420e767eaf   none              null      local
+
+
+root@master-node:~# docker service create --name redis --network frontend redis:alpine
+10nbumtwuzl3tap06t3k2rtg8
+overall progress: 1 out of 1 tasks 
+1/1: running   [==================================================>] 
+verify: Service converged 
+
+
+root@master-node:~# docker service ls
+ID             NAME      MODE         REPLICAS   IMAGE          PORTS
+10nbumtwuzl3   redis     replicated   1/1        redis:alpine   
+
+
+root@master-node:~# docker service create --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres --mount type=volume,source=db-data,target=/var/lib/postgresql/data --network backend  postgres:15-alpine
+dbh0cwgb0wm3jnragg1v4p8go
+overall progress: 1 out of 1 tasks 
+1/1: running   [==================================================>] 
+verify: Service converged 
+
+
+root@master-node:~# docker service ls
+ID             NAME      MODE         REPLICAS   IMAGE                PORTS
+dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine   
+10nbumtwuzl3   redis     replicated   1/1        redis:alpine 
+        
+root@master-node:~# docker ps
+CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS          PORTS      NAMES
+7a419507df3a   redis:alpine   "docker-entrypoint.s…"   10 minutes ago   Up 10 minutes   6379/tcp   redis.1.sxwgorhgpe8kelhhiemoipzrn
+
+
+
+root@master-node:~# docker service ps db
+ID             NAME      IMAGE                NODE             DESIRED STATE   CURRENT STATE           ERROR     PORTS
+6jhaznlcn8fe   db.1      postgres:15-alpine   worker-node-02   Running         Running 4 minutes ago             
+
+
+root@worker-node-02:~# docker ps
+CONTAINER ID   IMAGE                COMMAND                  CREATED              STATUS              PORTS      NAMES
+b8f005e256d7   postgres:15-alpine   "docker-entrypoint.s…"   About a minute ago   Up About a minute   5432/tcp   db.1.6jhaznlcn8few6vvl7fxt0t4j
+
+root@master-node:~# docker service create --name vote --network frontend  --replicas 2 -p 5000:80 dockersamples/examplevotingapp_vote
+kcex184mlc58o8h6kini26p4l
+overall progress: 2 out of 2 tasks 
+1/2: running   [==================================================>] 
+2/2: running   [==================================================>] 
+verify: Service converged 
+root@master-node:~# docker service ls
+ID             NAME      MODE         REPLICAS   IMAGE                                        PORTS
+dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine                           
+10nbumtwuzl3   redis     replicated   1/1        redis:alpine                                 
+kcex184mlc58   vote      replicated   2/2        dockersamples/examplevotingapp_vote:latest   *:5000->80/tcp
+root@master-node:~# docker service ps vote
+ID             NAME      IMAGE                                        NODE             DESIRED STATE   CURRENT STATE            ERROR     PORTS
+buux2xvm1387   vote.1    dockersamples/examplevotingapp_vote:latest   worker-node-01   Running         Running 24 seconds ago             
+3c3v1zy5inu2   vote.2    dockersamples/examplevotingapp_vote:latest   master-node      Running         Running 25 seconds ago    
+
+
+root@master-node:~# docker service create --name result --network backend -p 5001:80 dockersamples/examplevotingapp_result
+ws42fc440gdemq4fmkcsj5ndo
+overall progress: 1 out of 1 tasks 
+1/1: running   [==================================================>] 
+verify: Service converged 
+root@master-node:~# docker service ls
+ID             NAME      MODE         REPLICAS   IMAGE                                          PORTS
+dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine                             
+10nbumtwuzl3   redis     replicated   1/1        redis:alpine                                   
+ws42fc440gde   result    replicated   1/1        dockersamples/examplevotingapp_result:latest   *:5001->80/tcp
+kcex184mlc58   vote      replicated   2/2        dockersamples/examplevotingapp_vote:latest     *:5000->80/tcp
+root@master-node:~# docker service ps result
+ID             NAME       IMAGE                                          NODE             DESIRED STATE   CURRENT STATE                ERROR     PORTS
+pu6jzcealofd   result.1   dockersamples/examplevotingapp_result:latest   worker-node-01   Running         Running about a minute ago 
+
+root@master-node:~# docker service create --name worker --network frontend  --network backend  --replicas 2 dockersamples/examplevotingapp_worker
+h5tbj0q3y7igbk6dzfcl74806
+overall progress: 2 out of 2 tasks 
+1/2: running   [==================================================>] 
+2/2: running   [==================================================>] 
+verify: Service converged 
+root@master-node:~# docker service ls
+ID             NAME      MODE         REPLICAS   IMAGE                                          PORTS
+dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine                             
+10nbumtwuzl3   redis     replicated   1/1        redis:alpine                                   
+ws42fc440gde   result    replicated   1/1        dockersamples/examplevotingapp_result:latest   *:5001->80/tcp
+kcex184mlc58   vote      replicated   2/2        dockersamples/examplevotingapp_vote:latest     *:5000->80/tcp
+h5tbj0q3y7ig   worker    replicated   2/2        dockersamples/examplevotingapp_worker:latest   
+root@master-node:~# docker service ps worker
+ID             NAME       IMAGE                                          NODE             DESIRED STATE   CURRENT STATE            ERROR     PORTS
+o8qxqcattb6c   worker.1   dockersamples/examplevotingapp_worker:latest   worker-node-02   Running         Running 31 seconds ago             
+2v3146io6z6a   worker.2   dockersamples/examplevotingapp_worker:latest   worker-node-01   Running         Running 33 seconds ago  
+
+
+root@master-node:~# docker service scale vote=5
+vote scaled to 5
+overall progress: 5 out of 5 tasks 
+1/5: running   [==================================================>] 
+2/5: running   [==================================================>] 
+3/5: running   [==================================================>] 
+4/5: running   [==================================================>] 
+5/5: running   [==================================================>] 
+verify: Service converged 
+root@master-node:~# docker service ls
+ID             NAME      MODE         REPLICAS   IMAGE                                          PORTS
+dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine                             
+10nbumtwuzl3   redis     replicated   1/1        redis:alpine                                   
+ws42fc440gde   result    replicated   1/1        dockersamples/examplevotingapp_result:latest   *:5001->80/tcp
+kcex184mlc58   vote      replicated   5/5        dockersamples/examplevotingapp_vote:latest     *:5000->80/tcp
+h5tbj0q3y7ig   worker    replicated   2/2        dockersamples/examplevotingapp_worker:latest   
+root@master-node:~# docker service ps vote
+ID             NAME      IMAGE                                        NODE             DESIRED STATE   CURRENT STATE            ERROR     PORTS
+buux2xvm1387   vote.1    dockersamples/examplevotingapp_vote:latest   worker-node-01   Running         Running 18 minutes ago             
+3c3v1zy5inu2   vote.2    dockersamples/examplevotingapp_vote:latest   master-node      Running         Running 18 minutes ago             
+tdlml0xz6di7   vote.3    dockersamples/examplevotingapp_vote:latest   worker-node-01   Running         Running 35 seconds ago             
+kphm1nsidy7m   vote.4    dockersamples/examplevotingapp_vote:latest   worker-node-02   Running         Running 26 seconds ago             
+so9l3kj0ngbz   vote.5    dockersamples/examplevotingapp_vote:latest   master-node      Running         Running 35 seconds ago   
+
+
+
+root@worker-node-01:~# docker ps
+CONTAINER ID   IMAGE                                          COMMAND                  CREATED              STATUS              PORTS     NAMES
+662c0a2b137b   dockersamples/examplevotingapp_vote:latest     "gunicorn app:app -b…"   About a minute ago   Up About a minute   80/tcp    vote.3.tdlml0xz6di7rhkqr5uf606ey
+69f4078063bc   dockersamples/examplevotingapp_worker:latest   "dotnet Worker.dll"      14 minutes ago       Up 14 minutes                 worker.2.2v3146io6z6a9uavvc3s56mz3
+b1bbc9850241   dockersamples/examplevotingapp_result:latest   "/usr/bin/tini -- no…"   17 minutes ago       Up 17 minutes       80/tcp    result.1.pu6jzcealofdf0dwxzg5vubpf
+6151a155a21c   dockersamples/examplevotingapp_vote:latest     "gunicorn app:app -b…"   19 minutes ago       Up 19 minutes       80/tcp    vote.1.buux2xvm138770ywqt5fhrily
+root@worker-node-01:~# docker rm 662c0a2b137b
+Error response from daemon: You cannot remove a running container 662c0a2b137b74d9bc3e4cd7dc1bddd3606c8dd698dc97025ae9bd7cab8706b5. Stop the container before attempting removal or force remove
+root@worker-node-01:~# docker stop 662c0a2b137b
+662c0a2b137b
+
+
+
+root@master-node:~# docker service ps vote
+ID             NAME         IMAGE                                        NODE             DESIRED STATE   CURRENT STATE             ERROR     PORTS
+buux2xvm1387   vote.1       dockersamples/examplevotingapp_vote:latest   worker-node-01   Running         Running 21 minutes ago              
+3c3v1zy5inu2   vote.2       dockersamples/examplevotingapp_vote:latest   master-node      Running         Running 21 minutes ago              
+ho3r35mzgapl   vote.3       dockersamples/examplevotingapp_vote:latest   worker-node-01   Running         Running 35 seconds ago              
+tdlml0xz6di7    \_ vote.3   dockersamples/examplevotingapp_vote:latest   worker-node-01   Shutdown        Complete 41 seconds ago             
+kphm1nsidy7m   vote.4       dockersamples/examplevotingapp_vote:latest   worker-node-02   Running         Running 3 minutes ago               
+so9l3kj0ngbz   vote.5       dockersamples/examplevotingapp_vote:latest   master-node      Running         Running 3 minutes ago               
+
+
+
+root@master-node:~# docker service scale vote=2
+vote scaled to 2
+overall progress: 2 out of 2 tasks 
+1/2: running   [==================================================>] 
+2/2: running   [==================================================>] 
+verify: Service converged 
+root@master-node:~# docker service ls
+ID             NAME      MODE         REPLICAS   IMAGE                                          PORTS
+dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine                             
+10nbumtwuzl3   redis     replicated   1/1        redis:alpine                                   
+ws42fc440gde   result    replicated   1/1        dockersamples/examplevotingapp_result:latest   *:5001->80/tcp
+kcex184mlc58   vote      replicated   2/2        dockersamples/examplevotingapp_vote:latest     *:5000->80/tcp
+h5tbj0q3y7ig   worker    replicated   2/2        dockersamples/examplevotingapp_worker:latest   
+root@master-node:~# docker service ps vote
+ID             NAME      IMAGE                                        NODE             DESIRED STATE   CURRENT STATE            ERROR     PORTS
+buux2xvm1387   vote.1    dockersamples/examplevotingapp_vote:latest   worker-node-01   Running         Running 22 minutes ago             
+3c3v1zy5inu2   vote.2    dockersamples/examplevotingapp_vote:latest   master-node      Running         Running 22 minutes ago             
+tdlml0xz6di7   vote.3    dockersamples/examplevotingapp_vote:latest   worker-node-01   Shutdown        Complete 2 minutes ago             
+root@master-node:~# 
+
+
+DOCKER PROBLEM
+- container might crash /go down and need to be replace   and you have to manually replace it   
+- we might need more container instances up traffic spikes  (no auto scaling)
+- incoming traffic should be distributed equally (no  loadbalancing)
+
+
+               
+
+
+
+
+
