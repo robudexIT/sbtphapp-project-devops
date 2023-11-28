@@ -103,21 +103,14 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     docker network ls
  ```
    **Ouput:**
-
-    NETWORK ID     NAME              DRIVER    SCOPE
-  **cag6fv53tna7   backend           overlay   swarm** <br />
-    bef80b430af9   bridge            bridge    local  <br />
-    fc95ba08ec5a   docker_gwbridge   bridge    local  <br />
-  **rtz6cq41t38o   frontend          overlay   swarm**  <br />
-    0fb85dab3b12   host              host      local  <br />
-    3fvm0ivdkr90   ingress           overlay   swarm  <br />
-    79420e767eaf   none              null      local  <br />
+  ![docker cluster complete](../screenshots/network_ls.png)
 
 - Next, we will create redis service. On the **docker-stack.yml** the redis configure like this
     **redis:** <br />
      &nbsp;&nbsp;&nbsp;&nbsp;**image: redis:alpine** <br />
      &nbsp;&nbsp;&nbsp;&nbsp;**networks:** <br />
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **frontend**<br />
+
    The docker command equivalent for creating this service is:
     
     ```bash
@@ -159,8 +152,8 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
      **db:** <br />
          &nbsp;&nbsp;&nbsp;&nbsp;**image: postgres:15-alpine** <br />
          &nbsp;&nbsp;&nbsp;&nbsp;**environment:**  <br />
-           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**POSTGRES_USER: "postgres"**  <br />
-           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**POSTGRES_PASSWORD: "postgres"** <br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**POSTGRES_USER: "postgres"**  <br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**POSTGRES_PASSWORD: "postgres"** <br />
          &nbsp;&nbsp;&nbsp;&nbsp;**volumes:**  <br />
          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-**db-data:/var/lib/postgresql/data**  <br />
          &nbsp;&nbsp;&nbsp;&nbsp;**networks:** <br />
@@ -217,11 +210,11 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     **vote:**  <br />
         &nbsp;&nbsp;&nbsp;&nbsp;**image: dockersamples/examplevotingapp_vote**  <br />
         &nbsp;&nbsp;&nbsp;&nbsp;**ports:**  <br />
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **5000:80**   <br />
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **5000:80**   <br />
         &nbsp;&nbsp;&nbsp;&nbsp;**networks:**  <br />
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **frontend**  <br />
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **frontend**  <br />
         &nbsp;&nbsp;&nbsp;&nbsp;**deploy:**  <br />
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**replicas: 2**  <br />
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**replicas: 2**  <br />
 
     The docker command equivalent is:
     
@@ -322,10 +315,10 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
   **worker:** <br />
     &nbsp;&nbsp;&nbsp;&nbsp;**image: dockersamples/examplevotingapp_worker**  <br />
     &nbsp;&nbsp;&nbsp;&nbsp;**networks:**  <br />
-       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **frontend**  <br />
-       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **backend**  <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **frontend**  <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **backend**  <br />
     &nbsp;&nbsp;&nbsp;&nbsp;**deploy:**  <br />
-       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**replicas: 2**  <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**replicas: 2**  <br />
 
       The docker command equivalent is:
     
