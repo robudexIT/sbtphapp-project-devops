@@ -335,13 +335,13 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
 
 - Next, we will create **worker** service. On the docker-stack.yml the **worker** service configure like this:
 
-  worker: <br />
-    &nbsp;&nbsp;&nbsp;&nbsp;image: dockersamples/examplevotingapp_worker  <br />
-    &nbsp;&nbsp;&nbsp;&nbsp;networks:  <br />
-       &nbsp;&nbsp;&nbsp;&nbsp;- frontend  <br />
-       &nbsp;&nbsp;&nbsp;&nbsp;- backend  <br />
-    &nbsp;&nbsp;&nbsp;&nbsp;deploy:  <br />
-       &nbsp;&nbsp;&nbsp;&nbsp;replicas: 2  <br />
+  **worker:** <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;**image: dockersamples/examplevotingapp_worker**  <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;**networks:**  <br />
+       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **frontend**  <br />
+       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- **backend**  <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;**deploy:**  <br />
+       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**replicas: 2**  <br />
 
       The docker command equivalent is:
     
