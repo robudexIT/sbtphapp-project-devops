@@ -102,7 +102,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     docker network create -d overlay backend
     docker network ls
  ```
-   Ouput:
+   **Ouput:**
 
     NETWORK ID     NAME              DRIVER    SCOPE
   **cag6fv53tna7   backend           overlay   swarm** <br />
@@ -141,7 +141,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     ```bash
         docker service ls 
     ```
-    output:
+   **Output:**
         ID             NAME      MODE         REPLICAS   IMAGE          PORTS <br />
         **10nbumtwuzl3   redis     replicated   1/1        redis:alpine**  
 
@@ -150,7 +150,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     ```bash
            docker service ps redis 
     ```
-    Output: <br />
+    **Output:** <br />
         ID             NAME      IMAGE          NODE          DESIRED STATE   CURRENT STATE         ERROR     PORTS <br />
         **sxwgorhgpe8k**   redis.1   redis:alpine   **master-node**   Running         Running 3 hours ago <br />
 
@@ -188,7 +188,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
 
 
 
-    Output:  <br />
+    **Output**:  <br />
     dbh0cwgb0wm3jnragg1v4p8go  <br />
     overall progress: 1 out of 1 tasks   <br />
     1/1: running   [==================================================>]   <br />
@@ -200,7 +200,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
         docker service ls 
     ```
     
-    Output:  <br />
+    **Output:**  <br />
     ID             NAME      MODE         REPLICAS   IMAGE                PORTS  <br />
     **dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine**    <br />
     10nbumtwuzl3   redis     replicated   1/1        redis:alpine     <br />
@@ -211,7 +211,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     ```bash
         docker service ps db 
     ```
-    Output:  <br />
+    **Output:**  <br />
     ID             NAME      IMAGE                NODE             DESIRED STATE   CURRENT STATE           ERROR     PORTS  <br />
     6jhaznlcn8fe   db.1      postgres:15-alpine   **worker-node-02**   Running         Running 4 minutes ago  <br />
 
@@ -244,7 +244,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
 
     5. **dockersamples/examplevotingapp_vote**: Specifies the Docker image to be used for the service. In this case, it's the **"examplevotingapp_vote"** image from the **"dockersamples"** repository.
 
-    Output:  <br />
+    **Output:**  <br />
     kcex184mlc58o8h6kini26p4l  <br />
     overall progress: 2 out of 2 tasks   <br />
     1/2: running   [==================================================>]  <br />
@@ -256,7 +256,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     ```bash
             docker service ls 
     ```
-    Output:  <br />
+    **Output:**  <br />
     ID             NAME      MODE         REPLICAS   IMAGE                                        PORTS  <br />
     dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine      <br />                      
     10nbumtwuzl3   redis     replicated   1/1        redis:alpine            <br />                      
@@ -269,7 +269,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
        ```bash
            docker service ps vote
        ```
-    Output:  <br />
+    **Output:**  <br />
     ID             NAME      IMAGE                                        NODE             DESIRED STATE   CURRENT  <br />STATE            ERROR     PORTS
     buux2xvm1387   vote.1    dockersamples/examplevotingapp_vote:latest   **worker-node-01**   Running         Running 24 seconds ago   <br />           
     3c3v1zy5inu2   vote.2    dockersamples/examplevotingapp_vote:latest   **master-node**      Running         Running 25 seconds ago     <br />
@@ -301,7 +301,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
 
     4. **dockersamples/examplevotingapp_result**: Specifies the Docker image to be used for the service. In this case, it's the **"examplevotingapp_result"** image from the **"dockersamples"** repository.
 
-    Output:
+    **Output:**
     ws42fc440gdemq4fmkcsj5ndo
     overall progress: 1 out of 1 tasks 
     1/1: running   [==================================================>] 
@@ -312,7 +312,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     ```bash
       docker service ls 
     ```
-    Output:
+   **Output**:
     ID             NAME      MODE         REPLICAS   IMAGE                                          PORTS
     dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine                             
     10nbumtwuzl3   redis     replicated   1/1        redis:alpine                                   
@@ -326,7 +326,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     ```bash
            docker service ps result
     ```
-    Output:
+    **Output:**
 
     ID             NAME       IMAGE                                          NODE             DESIRED STATE   CURRENT STATE                ERROR     PORTS
     pu6jzcealofd   result.1   dockersamples/examplevotingapp_result:latest   **worker-node-01**   Running         Running about a minute ago 
@@ -336,11 +336,11 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
 - Next, we will create **worker** service. On the docker-stack.yml the **worker** service configure like this:
 
   worker: <br />
-    image: dockersamples/examplevotingapp_worker  <br />
-    networks:  <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;image: dockersamples/examplevotingapp_worker  <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;networks:  <br />
       - frontend  <br />
       - backend  <br />
-    deploy:  <br />
+    &nbsp;&nbsp;&nbsp;&nbsp;deploy:  <br />
       replicas: 2  <br />
 
       The docker command equivalent is:
@@ -360,7 +360,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
 
     5. **dockersamples/examplevotingapp_worker**: Specifies the Docker image to be used for the service. In this case, it's the **"examplevotingapp_worker"** image from the **"dockersamples"** repository.
 
-    Output:  <br />
+    **Output:**  <br />
     h5tbj0q3y7igbk6dzfcl74806  <br /> 
     overall progress: 2 out of 2 tasks  <br />
     1/2: running   [==================================================>]  <br />
@@ -373,7 +373,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
      ```bash
             docker service ls 
     ```
-    Output:  <br />
+    **Output:**  <br />
     ID             NAME      MODE         REPLICAS   IMAGE                                          PORTS  <br />
     dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine                              <br />
     10nbumtwuzl3   redis     replicated   1/1        redis:alpine               <br />                     
@@ -389,7 +389,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     ```bash
            docker service ps worker
     ```
-    Output:  <br />
+    **Output**:  <br />
     ID             NAME       IMAGE                                          NODE             DESIRED STATE   CURRENT<br /> STATE            ERROR     PORTS
     o8qxqcattb6c   worker.1   dockersamples/examplevotingapp_worker:latest   **worker-node-02**   Running         Running 31 seconds ago   <br />           
     2v3146io6z6a   worker.2   dockersamples/examplevotingapp_worker:latest   **worker-node-01**   Running         Running 33 seconds ago  <br />
@@ -402,7 +402,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     ```bash
        docker service scale vote=5
     ```
-    Output:  <br />
+    **Output:**  <br />
     vote scaled to 5  <br />
     overall progress: 5 out of 5 tasks   <br />
     1/5: running   [==================================================>]  <br />
@@ -417,7 +417,7 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
     ```bash
        docker service ls
     ```     
-    Output:  <br />
+    **Output:**  <br />
     ID             NAME      MODE         REPLICAS   IMAGE                                          PORTS  <br />
     dbh0cwgb0wm3   db        replicated   1/1        postgres:15-alpine    <br />                          
     10nbumtwuzl3   redis     replicated   1/1        redis:alpine    <br />                                
@@ -429,7 +429,9 @@ As we delve into the Docker Swarm concept and work on conceptualizing the implem
 
     ```bash
        docker service ps vote
+
     ```
+  **Output:**
     ID             NAME      IMAGE                                        NODE             DESIRED STATE   CURRENT STATE            ERROR     PORTS <br />
     buux2xvm1387   vote.1    dockersamples/examplevotingapp_vote:latest   worker-node-01   Running         Running 18 minutes ago   <br />          
     3c3v1zy5inu2   vote.2    dockersamples/examplevotingapp_vote:latest   master-node      Running         Running 18 minutes ago   <br />           
