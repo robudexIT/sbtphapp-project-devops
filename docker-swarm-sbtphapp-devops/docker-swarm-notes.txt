@@ -1,0 +1,14 @@
+docker service create --detach=true   --name mariadb  --network backend-database --env-file ./env/db.env   --mount type=volume,source=sbtphdb,target=/var/lib/mysql   --mount type=bind,source=$(pwd)/database,target=/docker-entrypoint-initdb.d   --publish 3307:3306   mariadb
+
+docker service create --name api --env-file ./env/api.env --network backend-database --replicas=5  -p 8081:80 robudex17/sbtphapi
+
+docker service create --name frontend --network frontend-backend --replicas=5  -p 8082:80 robudex17/sbtphapp:latest
+
+
+docker tag docker-api:latest robudex17/sbtphapi:latest
+
+docker login
+
+
+docker push robudex17/sbtphapi:latest
+ 
